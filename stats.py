@@ -100,8 +100,11 @@ class engine:
             print("-"*70)
             print("-"*70)
 
-    def getCommitsOfUsers(self,days=None, giveFilename = False, startDate=None, endDate=None, csv=False):
-        '''gets the total commits of the users in config over the past days specified and prints them '''
+    def getCommitsOfUsers(self,excludeCommitThreshhold, days=None, giveFilename = False, startDate=None, endDate=None, csv=False):
+        '''gets the total commits of the users in config over the past days specified and prints them 
+        option:
+        excludeCommitThreshhold - at what count of lines modified do we no longer track a commit. If a commit exceeds this amount then we will skip it.
+        '''
         loggedContributors = {}
         commitsObject = Repository(REPO_LINK).traverse_commits()
         for commit in commitsObject:
@@ -114,7 +117,7 @@ class engine:
 
             elif days != None:
                 dateDifferenceDays = days
-                dateEnd = datetime.now().date()
+                # dateEnd = datetime.now().date()
                 dateStart = dateEnd - timedelta(days)
 
             if (dateEnd - datetime.fromisoformat(str(commit.committer_date)).date()).days < dateDifferenceDays:
@@ -124,7 +127,10 @@ class engine:
                     for userProfile in CONTRIBUTORS[userProfiles]:
                         if commit.author.name == userProfile:
                             loggedContributors[userProfiles]["total commits"] = loggedContributors[userProfiles]["total commits"] + 1
-
+                            if (commit.insertions+commit.deletions) > excludeCommitThreshhold:
+                                print("-"*70)
+                                print(f"skipping {commit.insertions+commit.deletions} modified lines for user {userProfile} ---------- github ref link -- {REPO_LINK}/commit/{commit.hash}")
+                                break
                             for file in commit.modified_files:
                                 if file.filename in self.getAcceptableFiles():
 
@@ -164,15 +170,6 @@ class engine:
             return statisticsString, loggedContributors
 
 
-    def printReportToConsole(self,days=None, startDate=None, endDate=None):
-        '''print the commits report to console '''
-        if days != None:
-            string1, contributorReport =  self.getCommitsOfUsers(days=days, csv=False)
-        elif startDate and endDate != None:
-            string1, contributorReport =  self.getCommitsOfUsers(startDate=startDate, endDate=endDate, csv=False)
-
-        print(string1)
-        pprint(contributorReport)
 
 
     def exportCommitsOfUsers(self,days=None, startDate=None, endDate=None):
@@ -195,7 +192,18 @@ class engine:
                 acceptableFiles.append(file)
         return acceptableFiles
     
-    
+
+    def printReportToConsole(self,excludeCommitThreshhold, days=None, startDate=None, endDate=None):
+        '''print the commits report to console '''
+        if days != None:
+            string1, contributorReport =  self.getCommitsOfUsers(excludeCommitThreshhold, days=days, csv=False)
+        elif startDate and endDate != None:
+            string1, contributorReport =  self.getCommitsOfUsers(excludeCommitThreshhold, startDate=startDate, endDate=endDate, csv=False)
+
+        print(string1)
+        pprint(contributorReport)
+
+
     def reportAdditionsPerFile(self,days=None, giveFilename = False, startDate=None, endDate=None, csv=False, userResearch = None):
         '''gets information about a single user and reports based on their commits - this function is for debugging purposes - objective is to find inaccuracies in reports'''
         commitsObject = Repository(REPO_LINK).traverse_commits()
@@ -338,10 +346,10 @@ if __name__ == "__main__":
     # engineA.getNumberModifications()
     # engineA.printAllCommitStats()
     # engineA.printReportToConsole(300)
-    # engineA.printReportToConsole(startDate="2021-12-1", endDate="2021-12-10")
+    engineA.printReportToConsole(1000, startDate="2021-1-1", endDate="2021-12-10")
     # engineA.reportAdditionsPerFile(days=300,userResearch="Kenneth")
     # engineA.reportFilesEdittedPerCommit(alertCount=3, userResearch="Kenneth", days=300)
-    engineA.reportLinesModifiedPerCommit(alertCount=100, userResearch="Kenneth", days=300)
+    # engineA.reportLinesModifiedPerCommit(alertCount=100, userResearch="Kenneth", days=300)
 
     # engineA.exportCommitsOfUsers(10)
     # 
