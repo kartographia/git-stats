@@ -196,7 +196,7 @@ class engine:
         return acceptableFiles
     
     
-    def testCommitsOfUsersSize(self,days=None, giveFilename = False, startDate=None, endDate=None, csv=False, userResearch = None):
+    def reportAdditionsPerFile(self,days=None, giveFilename = False, startDate=None, endDate=None, csv=False, userResearch = None):
         '''gets information about a single user and reports based on their commits - this function is for debugging purposes - objective is to find inaccuracies in reports'''
         commitsObject = Repository(REPO_LINK).traverse_commits()
         for commit in commitsObject:
@@ -224,11 +224,13 @@ class engine:
                         for file in commit.modified_files:
                             if file.filename in self.getAcceptableFiles():
                                 uniqueFilenameInt = random.randint(1000,9999)
+
                                 if len(file.diff_parsed["added"]) > 300:
                                     print("-"*70)
                                     print("found a big commit insert "+str(commit.insertions) + " filename "+file.filename)
                                     print("github commit link for viewing "+ f"{REPO_LINK}/commit/{commit.hash}")
                                     print("insertions logged to "+f"temp/reports/exportedInsertionsCommit{datetime.now().date()}{uniqueFilenameInt}.txt")
+
                                     with open(f"temp/reports/exportedInsertionsCommit{datetime.now().date()}{uniqueFilenameInt}.txt","w+") as f:
                                         for line in file.diff_parsed["added"]:
                                             f.writelines(f"{line[1]}\n")
@@ -271,6 +273,64 @@ class engine:
         print(statisticsString)
         pprint(userResearchReport)  
 
+    def reportFilesEdittedPerCommit(self, alertCount, userResearch, days=None, giveFilename = False, startDate=None, endDate=None, csv=False):
+        '''gets information about a single user and reports based on their commits - this function is for debugging purposes - objective is to find inaccuracies in reports
+        
+        primary focus is whether a user is touching more than the specified number of files at a time. Best accuracy has been above 3 files.
+        
+        note: this has not turned up to be a way to resolving or gaining information for our use-case but may be useful elsewhere.
+        '''
+        commitsObject = Repository(REPO_LINK).traverse_commits()
+        for commit in commitsObject:
+            if startDate != None and endDate != None:
+                dateEnd = datetime.strptime(endDate,'%Y-%m-%d').date()
+                dateStart = datetime.strptime(startDate,'%Y-%m-%d').date()
+                dateDifferenceDays = (dateEnd - dateStart).days
+
+            elif days != None:
+                dateDifferenceDays = days
+                dateEnd = datetime.now().date()
+                dateStart = dateEnd - timedelta(days)
+
+            if (dateEnd - datetime.fromisoformat(str(commit.committer_date)).date()).days < dateDifferenceDays:
+
+                    if commit.author.name == userResearch:
+                        acceptableFilesCounted = 0
+                        for file in commit.modified_files:
+                            if file.filename in self.getAcceptableFiles():
+                                acceptableFilesCounted += 1
+                            
+                            break
+                        if acceptableFilesCounted > alertCount:
+                            print(f"found {acceptableFilesCounted} files touched in commit {REPO_LINK}/commit/{commit.hash} ")
+                            print("-"*70)
+
+    def reportLinesModifiedPerCommit(self, alertCount, userResearch, days=None, giveFilename = False, startDate=None, endDate=None, csv=False):
+        '''gets information about a single user and reports based on their commits - this function is for debugging purposes - objective is to find inaccuracies in reports
+        
+        primary focus is logging commits that have a high number of lines modified.
+        
+        note: this has turned out extremely valuable for our use-case.
+        '''
+        commitsObject = Repository(REPO_LINK).traverse_commits()
+        for commit in commitsObject:
+            if startDate != None and endDate != None:
+                dateEnd = datetime.strptime(endDate,'%Y-%m-%d').date()
+                dateStart = datetime.strptime(startDate,'%Y-%m-%d').date()
+                dateDifferenceDays = (dateEnd - dateStart).days
+
+            elif days != None:
+                dateDifferenceDays = days
+                dateEnd = datetime.now().date()
+                dateStart = dateEnd - timedelta(days)
+
+            if (dateEnd - datetime.fromisoformat(str(commit.committer_date)).date()).days < dateDifferenceDays:
+
+                    if commit.author.name == userResearch:
+                        if (commit.insertions+commit.deletions) > alertCount:
+                            print(f"found {commit.insertions+commit.deletions} lines modified in commit {REPO_LINK}/commit/{commit.hash} ")
+                            print("-"*70)
+
 
 
 if __name__ == "__main__":
@@ -279,6 +339,9 @@ if __name__ == "__main__":
     # engineA.printAllCommitStats()
     # engineA.printReportToConsole(300)
     # engineA.printReportToConsole(startDate="2021-12-1", endDate="2021-12-10")
-    engineA.testCommitsOfUsersSize(days=300,userResearch="Kenneth")
+    # engineA.reportAdditionsPerFile(days=300,userResearch="Kenneth")
+    # engineA.reportFilesEdittedPerCommit(alertCount=3, userResearch="Kenneth", days=300)
+    engineA.reportLinesModifiedPerCommit(alertCount=100, userResearch="Kenneth", days=300)
+
     # engineA.exportCommitsOfUsers(10)
     # 
