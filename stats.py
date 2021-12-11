@@ -6,7 +6,6 @@ from config import IGNORE_DIRECTORY
 from config import REPO_LINK
 from pprint import pprint
 from datetime import timedelta
-import git
 import os
 import csv
 
