@@ -275,11 +275,12 @@ class engine:
         #     return statisticsString, loggedContributors
 
 
-engineA = engine()
-# engineA.getNumberModifications()
-# engineA.printAllCommitStats()
-# engineA.printReportToConsole(300)
-# engineA.printReportToConsole(startDate="2021-12-1", endDate="2021-12-10")
-engineA.testCommitsOfUsersSize(days=300,userResearch="Kenneth")
-# engineA.exportCommitsOfUsers(10)
-# 
+if __name__ == "__main__":
+    engineA = engine()
+    # engineA.getNumberModifications()
+    # engineA.printAllCommitStats()
+    # engineA.printReportToConsole(300)
+    # engineA.printReportToConsole(startDate="2021-12-1", endDate="2021-12-10")
+    engineA.testCommitsOfUsersSize(days=300,userResearch="Kenneth")
+    # engineA.exportCommitsOfUsers(10)
+    # 
