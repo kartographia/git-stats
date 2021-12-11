@@ -65,6 +65,7 @@ class engine:
     def __init__(self):
         pass
     def printAllCommitStats(self):
+        '''show multiple useful information field results from the commit object '''
         for commit in Repository('https://github.com/CentrifugeTech/BlueWave').traverse_commits():
             # print(commit.msg)
             # print(commit.project_name)
@@ -82,6 +83,7 @@ class engine:
             # commits with more than 50 lines added and less than 50 lines removed
 
     def printAllOptions(self):
+        ''' show all options of the commit object '''
         for commit in Repository('https://github.com/CentrifugeTech/BlueWave').traverse_commits():
             # for i in commit:
                 # print(i)
