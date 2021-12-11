@@ -8,6 +8,7 @@ from pprint import pprint
 from datetime import timedelta
 import os
 import csv
+import random
 
 '''
 https://pydriller.readthedocs.io/en/latest/reference.html#module-pydriller.repository
@@ -222,14 +223,15 @@ class engine:
                         # print(f"found commit by {userResearch}")
                         for file in commit.modified_files:
                             if file.filename in self.getAcceptableFiles():
+                                uniqueFilenameInt = random.randint(1000,9999)
                                 if len(file.diff_parsed["added"]) > 300:
                                     print("-"*70)
                                     print("found a big commit insert "+str(commit.insertions) + " filename "+file.filename)
                                     print("github commit link for viewing "+ f"{REPO_LINK}/commit/{commit.hash}")
-
-                                    with open(f"temp/reports/exportedInsertionsCommit{datetime.now().date()}.txt","w+") as f:
+                                    print("insertions logged to "+f"temp/reports/exportedInsertionsCommit{datetime.now().date()}{uniqueFilenameInt}.txt")
+                                    with open(f"temp/reports/exportedInsertionsCommit{datetime.now().date()}{uniqueFilenameInt}.txt","w+") as f:
                                         for line in file.diff_parsed["added"]:
-                                            f.writelines(line[1])
+                                            f.writelines(f"{line[1]}\n")
                                             if "console.log" in line[1]:
                                                 userResearchReport["total insertions"]["logging"] = userResearchReport["total insertions"]["logging"] + 1 
 
@@ -246,10 +248,11 @@ class engine:
                                     print("-"*70)
                                     print("found a big commit delete "+str(commit.deletions)+ " filename "+file.filename)
                                     print("github commit link for viewing "+ f"{REPO_LINK}/commit/{commit.hash}")
+                                    print("deletions logged to "+f"temp/reports/exportedDeletionsCommit{datetime.now().date()}{uniqueFilenameInt}.txt")
 
-                                    with open(f"temp/reports/exportedDeletionsCommit{datetime.now().date()}.txt","w+") as f:
+                                    with open(f"temp/reports/exportedDeletionsCommit{datetime.now().date()}{uniqueFilenameInt}.txt","w+") as f:
                                         for line in file.diff_parsed["deleted"]:
-                                            f.writelines(line[1])
+                                            f.writelines(f"{line[1]}\n")
                                             if "console.log" in line[1]:
                                                 userResearchReport["total deletions"]["logging"] = userResearchReport["total deletions"]["logging"] + 1 
 
