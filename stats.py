@@ -221,9 +221,9 @@ class engine:
                         userResearchReport["total commits"] = userResearchReport["total commits"] + 1
                         # print(f"found commit by {userResearch}")
                         for file in commit.modified_files:
-                            print("-"*70)
                             if file.filename in self.getAcceptableFiles():
                                 if len(file.diff_parsed["added"]) > 300:
+                                    print("-"*70)
                                     print("found a big commit insert "+str(commit.insertions) + " filename "+file.filename)
                                     print("github commit link for viewing "+ f"{REPO_LINK}/commit/{commit.hash}")
 
@@ -243,6 +243,7 @@ class engine:
                                                 userResearchReport["total insertions"]["code"] = userResearchReport["total insertions"]["code"] + 1 
                                 
                                 if len(file.diff_parsed["deleted"]) > 300:
+                                    print("-"*70)
                                     print("found a big commit delete "+str(commit.deletions)+ " filename "+file.filename)
                                     print("github commit link for viewing "+ f"{REPO_LINK}/commit/{commit.hash}")
 
