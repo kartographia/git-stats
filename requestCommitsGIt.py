@@ -99,7 +99,6 @@ class engine:
             print("-"*70)
 
     def getCommitsOfUsers(self,days=None, giveFilename = False, startDate=None, endDate=None, csv=False):
-        # set this so that it accepts dates and outputs filenames 
         '''gets the total commits of the users in config over the past days specified and prints them '''
         loggedContributors = {}
         commitsObject = Repository('https://github.com/CentrifugeTech/BlueWave').traverse_commits()
@@ -184,57 +183,6 @@ class engine:
 
 
 
-    def getCommitCounts(self,dateStart,dateEnd):
-        fileCount = 0
-        peterCount = 0
-        jordanCount = 0
-        jonOCount = 0
-        kennethCount = 0
-        johnKimCount = 0
-        loganCount = 0
-        for commit in Repository('https://github.com/CentrifugeTech/BlueWave').traverse_commits():
-            # print(commit.hash)
-            # print(commit.msg)
-            # print(commit.author.name)
-            fileCount = fileCount + 1
-            if commit.author.name == "Peter Borissow":
-                # print("found peter")
-                peterCount = peterCount + 1
-
-            if commit.author.name == "pborissow":
-                peterCount = peterCount + 1
-            
-            if commit.author.name == "Jan":
-                jonOCount = jonOCount + 1
-
-            if commit.author.name == "Jordan":
-                jordanCount = jordanCount + 1
-            
-            if commit.author.name == "Jordan.Dobson":
-                jordanCount = jordanCount + 1
-            
-            if commit.author.name == "JohnKim":
-                johnKimCount = johnKimCount + 1
-
-            if commit.author.name == "Kenneth":
-                kennethCount = kennethCount + 1
-            if commit.author.name == "Logan Mohseni":
-                loganCount = loganCount + 1
-
-
-            print(fileCount)
-            print("total commit count is ",fileCount)
-            print("total commit for peter ",peterCount)
-            print("total commit for jon O ",jonOCount)
-            print("total commit for jordan ",jordanCount)
-            print("total commit for john kim",johnKimCount)
-            print("total commit for kenneth ", kennethCount)
-            print("total commit for logan ", loganCount)
-
-            if (loganCount + kennethCount +johnKimCount + johnKimCount + jordanCount + jonOCount + peterCount) != fileCount:
-                # print("count is different")
-                # print(loganCount + kennethCount +johnKimCount + johnKimCount + jordanCount + jonOCount + peterCount)
-                pass
 
     def getAcceptableFiles(self):
 
@@ -325,7 +273,6 @@ class engine:
         #     return statisticsString, loggedContributors, dateEnd, dateStart
         # else:
         #     return statisticsString, loggedContributors
-
 
 
 engineA = engine()
