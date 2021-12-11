@@ -195,7 +195,7 @@ class engine:
         return acceptableFiles
     
     
-    def testCommitsOfUsersSize(self,days=None, giveFilename = False, startDate=None, endDate=None, csv=False):
+    def testCommitsOfUsersSize(self,days=None, giveFilename = False, startDate=None, endDate=None, csv=False, userResearch = None):
         '''gets the total commits of the users in config over the past days specified and prints them 
         options:
         csv - tell whether we want to have this report generated for a csv
@@ -231,7 +231,7 @@ class engine:
                                     print("found a big commit insert "+str(commit.insertions) + " filename "+file.filename)
                                     print("github commit link for viewing "+ f"{REPO_LINK}/commit/{commit.hash}")
 
-                                    with open(f"reports/exportedInsertionsCommit{datetime.now().date()}.txt","w+") as f:
+                                    with open(f"temp/reports/exportedInsertionsCommit{datetime.now().date()}.txt","w+") as f:
                                         for line in file.diff_parsed["added"]:
                                             f.writelines(line[1])
                                             if "console.log" in line[1]:
@@ -250,7 +250,7 @@ class engine:
                                     print("found a big commit delete "+str(commit.deletions)+ " filename "+file.filename)
                                     print("github commit link for viewing "+ f"{REPO_LINK}/commit/{commit.hash}")
 
-                                    with open(f"reports/exportedDeletionsCommit{datetime.now().date()}.txt","w+") as f:
+                                    with open(f"temp/reports/exportedDeletionsCommit{datetime.now().date()}.txt","w+") as f:
                                         for line in file.diff_parsed["deleted"]:
                                             f.writelines(line[1])
                                             if "console.log" in line[1]:
