@@ -196,12 +196,7 @@ class engine:
     
     
     def testCommitsOfUsersSize(self,days=None, giveFilename = False, startDate=None, endDate=None, csv=False, userResearch = None):
-        '''gets the total commits of the users in config over the past days specified and prints them 
-        options:
-        csv - tell whether we want to have this report generated for a csv
-        
-        
-        '''
+        '''gets information about a single user and reports based on their commits - this function is for debugging purposes - objective is to find inaccuracies in reports'''
         loggedContributors = {}
         commitsObject = Repository(REPO_LINK).traverse_commits()
         for commit in commitsObject:
@@ -218,11 +213,9 @@ class engine:
                 dateStart = dateEnd - timedelta(days)
 
             if (dateEnd - datetime.fromisoformat(str(commit.committer_date)).date()).days < dateDifferenceDays:
-                for userProfiles in CONTRIBUTORS:
-                    if userProfiles not in loggedContributors:
-                        loggedContributors[userProfiles] = {"total commits":0,"total insertions":{"code":0, "comments":0, "logging":0},"total deletions":{"code":0, "comments":0, "logging":0}}
+                    userResearchReport = {"total commits":0,"total insertions":{"code":0, "comments":0, "logging":0},"total deletions":{"code":0, "comments":0, "logging":0}}
                     if commit.author.name == userResearch:
-                        loggedContributors[userProfiles]["total commits"] = loggedContributors[userProfiles]["total commits"] + 1
+                        userResearchReport["total commits"] = userResearchReport["total commits"] + 1
                         # print(f"found commit by {userResearch}")
                         for file in commit.modified_files:
                             print("-"*70)
@@ -235,16 +228,16 @@ class engine:
                                         for line in file.diff_parsed["added"]:
                                             f.writelines(line[1])
                                             if "console.log" in line[1]:
-                                                loggedContributors[userProfiles]["total insertions"]["logging"] = loggedContributors[userProfiles]["total insertions"]["logging"] + 1 
+                                                userResearchReport["total insertions"]["logging"] = userResearchReport["total insertions"]["logging"] + 1 
 
                                             elif "#" in line[1]:
-                                                loggedContributors[userProfiles]["total insertions"]["comments"] = loggedContributors[userProfiles]["total insertions"]["comments"] + 1 
+                                                userResearchReport["total insertions"]["comments"] = userResearchReport["total insertions"]["comments"] + 1 
                                             
                                             elif (line[1].isspace() == True):
                                                 pass
 
                                             else:
-                                                loggedContributors[userProfiles]["total insertions"]["code"] = loggedContributors[userProfiles]["total insertions"]["code"] + 1 
+                                                userResearchReport["total insertions"]["code"] = userResearchReport["total insertions"]["code"] + 1 
                                 
                                 if len(file.diff_parsed["deleted"]) > 300:
                                     print("found a big commit delete "+str(commit.deletions)+ " filename "+file.filename)
@@ -254,16 +247,16 @@ class engine:
                                         for line in file.diff_parsed["deleted"]:
                                             f.writelines(line[1])
                                             if "console.log" in line[1]:
-                                                loggedContributors[userProfiles]["total deletions"]["logging"] = loggedContributors[userProfiles]["total deletions"]["logging"] + 1 
+                                                userResearchReport["total deletions"]["logging"] = userResearchReport["total deletions"]["logging"] + 1 
 
                                             elif "#" in line[1]:
-                                                loggedContributors[userProfiles]["total deletions"]["comments"] = loggedContributors[userProfiles]["total deletions"]["comments"] + 1 
+                                                userResearchReport["total deletions"]["comments"] = userResearchReport["total deletions"]["comments"] + 1 
 
                                             elif (line[1].isspace() == True or line[1] == ""):
                                                 pass
 
                                             else:
-                                                loggedContributors[userProfiles]["total deletions"]["code"] = loggedContributors[userProfiles]["total deletions"]["code"] + 1 
+                                                userResearchReport["total deletions"]["code"] = userResearchReport["total deletions"]["code"] + 1 
                     
                             break
 
