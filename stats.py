@@ -197,7 +197,6 @@ class engine:
     
     def testCommitsOfUsersSize(self,days=None, giveFilename = False, startDate=None, endDate=None, csv=False, userResearch = None):
         '''gets information about a single user and reports based on their commits - this function is for debugging purposes - objective is to find inaccuracies in reports'''
-        loggedContributors = {}
         commitsObject = Repository(REPO_LINK).traverse_commits()
         for commit in commitsObject:
             #get commits from all branches - skip commits that have already been checked
@@ -213,7 +212,11 @@ class engine:
                 dateStart = dateEnd - timedelta(days)
 
             if (dateEnd - datetime.fromisoformat(str(commit.committer_date)).date()).days < dateDifferenceDays:
-                    userResearchReport = {"total commits":0,"total insertions":{"code":0, "comments":0, "logging":0},"total deletions":{"code":0, "comments":0, "logging":0}}
+                    try:
+                        userResearchReport
+                    except:
+                        userResearchReport = {"username":userResearch, "repo":REPO_LINK, "total commits":0,"total insertions":{"code":0, "comments":0, "logging":0},"total deletions":{"code":0, "comments":0, "logging":0}}
+                    
                     if commit.author.name == userResearch:
                         userResearchReport["total commits"] = userResearchReport["total commits"] + 1
                         # print(f"found commit by {userResearch}")
@@ -262,11 +265,8 @@ class engine:
 
         statisticsString = f"statistics between {datetime.now().date() - timedelta(dateDifferenceDays)} and {datetime.now().date()}"
         print(statisticsString)
-        pprint(loggedContributors)
-        # if csv == True:
-        #     return statisticsString, loggedContributors, dateEnd, dateStart
-        # else:
-        #     return statisticsString, loggedContributors
+        pprint(userResearchReport)  
+
 
 
 if __name__ == "__main__":
