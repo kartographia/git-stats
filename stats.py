@@ -102,7 +102,7 @@ class engine:
     def getCommitsOfUsers(self,days=None, giveFilename = False, startDate=None, endDate=None, csv=False):
         '''gets the total commits of the users in config over the past days specified and prints them '''
         loggedContributors = {}
-        commitsObject = Repository('https://github.com/CentrifugeTech/BlueWave').traverse_commits()
+        commitsObject = Repository(REPO_LINK).traverse_commits()
         for commit in commitsObject:
             #get commits from all branches - skip commits that have already been checked
             # print("in main branch printout "+ str(commit.in_main_branch))
