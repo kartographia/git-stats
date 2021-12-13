@@ -25,4 +25,4 @@ REPO_LINK = "https://github.com/<username>/<repo>"
 
 You can also rename this [config.py example file ](config.py.example) to config.py and add your details to the file.
 
-**See wiki for more information**
+**See wiki for more information** [wiki](https://github.com/kartographia/git-stats/wiki)
