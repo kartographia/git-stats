@@ -6,6 +6,7 @@ from config import IGNORE_DIRECTORY
 from config import REPO_LINK
 from pprint import pprint
 from datetime import timedelta
+from itertools import islice
 import os
 import csv
 import random
@@ -32,7 +33,7 @@ committer_timezone
 ----------------------------------------------------------------------
 deletions
 ----------------------------------------------------------------------
-dmm_unit_complexity
+dmm_unit_cbranchesomplexity
 ----------------------------------------------------------------------
 dmm_unit_interfacing
 ----------------------------------------------------------------------
@@ -100,7 +101,7 @@ class engine:
             print("-"*70)
             print("-"*70)
 
-    def getCommitsOfUsers(self,excludeCommitThreshhold, days=None, giveFilename = False, startDate=None, endDate=None, csv=False):
+    def getOverviewReport(self,excludeCommitThreshhold, days=None, giveFilename = False, startDate=None, endDate=None, csvFormat=False):
         '''gets the total commits of the users in config over the past days specified and prints them 
         option:
         excludeCommitThreshhold - at what count of lines modified do we no longer track a commit. If a commit exceeds this amount then we will skip it.
@@ -117,7 +118,7 @@ class engine:
 
             elif days != None:
                 dateDifferenceDays = days
-                # dateEnd = datetime.now().date()
+                dateEnd = datetime.now().date()
                 dateStart = dateEnd - timedelta(days)
 
             if (dateEnd - datetime.fromisoformat(str(commit.committer_date)).date()).days < dateDifferenceDays:
@@ -164,21 +165,122 @@ class engine:
                             break
 
         statisticsString = f"statistics between {datetime.now().date() - timedelta(dateDifferenceDays)} and {datetime.now().date()}"
-        if csv == True:
+        if csvFormat == True:
             return statisticsString, loggedContributors, dateEnd, dateStart
         else:
             return statisticsString, loggedContributors
 
+    def getDetailedReport(self,excludeCommitThreshhold, days=None, giveFilename = False, startDate=None, endDate=None, csvFormat=False):
+            '''get a detailed report in the following format:
+                    date,username,num_lines_changed,file,path,branch,commit
+            option:
+            excludeCommitThreshhold - at what count of lines modified do we no longer track a commit. If a commit exceeds this amount then we will skip it.
+            '''
+            dataStructure = []
+            commitsObject = Repository(REPO_LINK).traverse_commits()
+            for commit in commitsObject:
+               #get commits from all branches - skip commits that have already been checked
+                # print("in main branch printout "+ str(commit.in_main_branch))
+                if startDate != None and endDate != None:
+                    dateEnd = datetime.strptime(endDate,'%Y-%m-%d').date()
+                    dateStart = datetime.strptime(startDate,'%Y-%m-%d').date()
+                    dateDifferenceDays = (dateEnd - dateStart).days
+
+                elif days != None:
+                    dateDifferenceDays = days
+                    dateEnd = datetime.now().date()
+                    dateStart = dateEnd - timedelta(days)
+
+                if (dateEnd - datetime.fromisoformat(str(commit.committer_date)).date()).days < dateDifferenceDays:
+                    for userProfiles in CONTRIBUTORS:
+                        for userProfile in CONTRIBUTORS[userProfiles]:
+                            if commit.author.name == userProfile:
+                                if (commit.insertions+commit.deletions) > excludeCommitThreshhold:
+                                    # print("-"*70)
+                                    # print(f"skipping {commit.insertions+commit.deletions} modified lines for user {userProfile} ---------- github ref link -- {REPO_LINK}/commit/{commit.hash}")
+                                    break
+                                for file in commit.modified_files:
+                                    if file.filename in self.getAcceptableFiles():
+                                        d = {"date":commit.committer_date, "username":userProfiles, "num_lines_changed":0, "file":file.filename, "path":None, "branch":next(iter(commit.branches)), "commitNum":commit.hash}
+
+                                        for line in file.diff_parsed["added"]:
+                                            if "console.log" in line[1]:
+                                                pass
+                                            elif "#" in line[1]:
+                                                pass
+                                            elif (line[1].isspace() == True):
+                                                pass
+
+                                            else:
+                                                d["num_lines_changed"] =  d["num_lines_changed"] + 1
+                                        
+                                        for line in file.diff_parsed["deleted"]:
+                                            if "console.log" in line[1]:
+                                                pass
+
+                                            elif "#" in line[1]:
+                                                pass
+
+                                            elif (line[1].isspace() == True or line[1] == ""):
+                                                pass
+
+                                            else:
+                                                d["num_lines_changed"] =  d["num_lines_changed"] + 1
+                                        dataStructure.append(d)
+                
+                                break
+
+            statisticsString = f"statistics between {datetime.now().date() - timedelta(dateDifferenceDays)} and {datetime.now().date()}"
+            if csvFormat == True:
+                return dataStructure, dateEnd, dateStart
+            else:
+                return statisticsString, dataStructure
 
 
 
-    def exportCommitsOfUsers(self,days=None, startDate=None, endDate=None):
+    def exportCommitsOfUsersReportA(self,days=None, startDate=None, endDate=None):
         '''gets the total commits of the users in config over the past days specified and exports them to csv format'''
-        string1, contributorReport,dateStart,dateEnd =  self.getCommitsOfUsers(days,datePicker=True,giveFilename=True, csv=True)
+        string1, contributorReport,dateStart,dateEnd =  self.getCommitsOfUsers(days,datePicker=True,giveFilename=True, csvFormat=True)
 
         with open(f'reports/activityReport{dateStart}___{dateEnd}.csv', 'w') as f:
             for key in contributorReport.keys():
                 f.write("%s,%s\n"%(key,contributorReport[key]))
+
+
+    def exportOverviewReportToCsv(self,excludeCommitThreshhold, days=None, giveFilename = False, startDate=None, endDate=None, csvFormat=False):
+        ''' for exporting data to CSV format 
+        following this structure:
+        loggedContributors[userProfiles] = {"total commits":0,"total insertions":{"code":0, "comments":0, "logging":0},"total deletions":{"code":0, "comments":0, "logging":0}}
+
+        '''
+
+        if days != None:
+            string1, overviewReport, dateStart, dateEnd =  self.getOverviewReport(excludeCommitThreshhold, days=days, csvFormat=False)
+       
+        elif startDate and endDate != None:
+            string1, overviewReport, dateStart, dateEnd =  self.getOverviewReport(excludeCommitThreshhold, startDate=startDate, endDate=endDate, csvFormat=True)
+       
+        with open(f'temp/reports/overviewActivityReport{dateStart}___{dateEnd}.csv', 'w') as f:
+                for key in overviewReport.keys():
+                    f.write("%s,%s\n"%(key,overviewReport[key]))
+        pass
+    
+    def exportDetailedReportToCsv(self,excludeCommitThreshhold, days=None, giveFilename = False, startDate=None, endDate=None, csvFormat=False):
+        ''' for exporting data to CSV format 
+        date,username,num_lines_changed,file,path,branch'''
+
+        if days != None:
+            detailedReport, dateStart, dateEnd =  self.getDetailedReport(excludeCommitThreshhold, days=days, csvFormat=True)
+       
+        elif startDate and endDate != None:
+            detailedReport, dateStart, dateEnd =  self.getDetailedReport(excludeCommitThreshhold, startDate=startDate, endDate=endDate, csvFormat=True)
+       
+        keys = detailedReport[0].keys()
+
+        with open(f'temp/reports/detailedActivityReport{dateStart}___{dateEnd}.csv', 'w') as f:
+            dict_writer = csv.DictWriter(f,keys)
+            dict_writer.writeheader()
+            dict_writer.writerows(detailedReport)
 
 
 
@@ -196,15 +298,15 @@ class engine:
     def printReportToConsole(self,excludeCommitThreshhold, days=None, startDate=None, endDate=None):
         '''print the commits report to console '''
         if days != None:
-            string1, contributorReport =  self.getCommitsOfUsers(excludeCommitThreshhold, days=days, csv=False)
+            string1, contributorReport =  self.getCommitsOfUsers(excludeCommitThreshhold, days=days, csvFormat=False)
         elif startDate and endDate != None:
-            string1, contributorReport =  self.getCommitsOfUsers(excludeCommitThreshhold, startDate=startDate, endDate=endDate, csv=False)
+            string1, contributorReport =  self.getCommitsOfUsers(excludeCommitThreshhold, startDate=startDate, endDate=endDate, csvFormat=False)
 
         print(string1)
         pprint(contributorReport)
 
 
-    def reportAdditionsPerFile(self,days=None, giveFilename = False, startDate=None, endDate=None, csv=False, userResearch = None):
+    def reportAdditionsPerFile(self,days=None, giveFilename = False, startDate=None, endDate=None, csvFormat=False, userResearch = None):
         '''gets information about a single user and reports based on their commits - this function is for debugging purposes - objective is to find inaccuracies in reports'''
         commitsObject = Repository(REPO_LINK).traverse_commits()
         for commit in commitsObject:
@@ -281,7 +383,7 @@ class engine:
         print(statisticsString)
         pprint(userResearchReport)  
 
-    def reportFilesEdittedPerCommit(self, alertCount, userResearch, days=None, giveFilename = False, startDate=None, endDate=None, csv=False):
+    def reportFilesEdittedPerCommit(self, alertCount, userResearch, days=None, giveFilename = False, startDate=None, endDate=None, csvFormat=False):
         '''gets information about a single user and reports based on their commits - this function is for debugging purposes - objective is to find inaccuracies in reports
         
         primary focus is whether a user is touching more than the specified number of files at a time. Best accuracy has been above 3 files.
@@ -313,7 +415,7 @@ class engine:
                             print(f"found {acceptableFilesCounted} files touched in commit {REPO_LINK}/commit/{commit.hash} ")
                             print("-"*70)
 
-    def reportLinesModifiedPerCommit(self, alertCount, userResearch, days=None, giveFilename = False, startDate=None, endDate=None, csv=False):
+    def reportLinesModifiedPerCommit(self, alertCount, userResearch, days=None, giveFilename = False, startDate=None, endDate=None, csvFormat=False):
         '''gets information about a single user and reports based on their commits - this function is for debugging purposes - objective is to find inaccuracies in reports
         
         primary focus is logging commits that have a high number of lines modified.
@@ -346,7 +448,9 @@ if __name__ == "__main__":
     # engineA.getNumberModifications()
     # engineA.printAllCommitStats()
     # engineA.printReportToConsole(300)
-    engineA.printReportToConsole(1000, startDate="2021-1-1", endDate="2021-12-10")
+    # engineA.printReportToConsole(1000, startDate="2021-1-1", endDate="2021-12-10")
+    engineA.exportDetailedReportToCsv(1000, startDate="2021-12-1", endDate="2021-12-10")
+
     # engineA.reportAdditionsPerFile(days=300,userResearch="Kenneth")
     # engineA.reportFilesEdittedPerCommit(alertCount=3, userResearch="Kenneth", days=300)
     # engineA.reportLinesModifiedPerCommit(alertCount=100, userResearch="Kenneth", days=300)
