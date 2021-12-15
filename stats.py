@@ -10,6 +10,9 @@ from itertools import islice
 import os
 import csv
 import random
+import argparse
+
+
 
 '''
 https://pydriller.readthedocs.io/en/latest/reference.html#module-pydriller.repository
@@ -101,10 +104,10 @@ class engine:
             print("-"*70)
             print("-"*70)
 
-    def getOverviewReport(self,excludeCommitThreshhold, days=None, giveFilename = False, startDate=None, endDate=None, csvFormat=False):
+    def getOverviewReport(self,maxLines, days=None, giveFilename = False, startDate=None, endDate=None, csvFormat=False):
         '''gets the total commits of the users in config over the past days specified and prints them 
         option:
-        excludeCommitThreshhold - at what count of lines modified do we no longer track a commit. If a commit exceeds this amount then we will skip it.
+        maxLines - at what count of lines modified do we no longer track a commit. If a commit exceeds this amount then we will skip it.
         '''
         loggedContributors = {}
         commitsObject = Repository(REPO_LINK).traverse_commits()
@@ -128,7 +131,7 @@ class engine:
                     for userProfile in CONTRIBUTORS[userProfiles]:
                         if commit.author.name == userProfile:
                             loggedContributors[userProfiles]["total commits"] = loggedContributors[userProfiles]["total commits"] + 1
-                            if (commit.insertions+commit.deletions) > excludeCommitThreshhold:
+                            if (commit.insertions+commit.deletions) > maxLines:
                                 print("-"*70)
                                 print(f"skipping {commit.insertions+commit.deletions} modified lines for user {userProfile} ---------- github ref link -- {REPO_LINK}/commit/{commit.hash}")
                                 break
@@ -170,11 +173,11 @@ class engine:
         else:
             return statisticsString, loggedContributors
 
-    def getDetailedReport(self,excludeCommitThreshhold, days=None, giveFilename = False, startDate=None, endDate=None, csvFormat=False):
+    def getDetailedReport(self,maxLines, days=None, giveFilename = False, startDate=None, endDate=None, csvFormat=False):
             '''get a detailed report in the following format:
                     date,username,num_lines_changed,file,path,branch,commit
             option:
-            excludeCommitThreshhold - at what count of lines modified do we no longer track a commit. If a commit exceeds this amount then we will skip it.
+            maxLines - at what count of lines modified do we no longer track a commit. If a commit exceeds this amount then we will skip it.
             '''
             dataStructure = []
             commitsObject = Repository(REPO_LINK).traverse_commits()
@@ -182,8 +185,8 @@ class engine:
                #get commits from all branches - skip commits that have already been checked
                 # print("in main branch printout "+ str(commit.in_main_branch))
                 if startDate != None and endDate != None:
-                    dateEnd = datetime.strptime(endDate,'%Y-%m-%d').date()
-                    dateStart = datetime.strptime(startDate,'%Y-%m-%d').date()
+                    dateEnd = datetime.strptime(endDate,'%m/%d/%Y').date()
+                    dateStart = datetime.strptime(startDate,'%m/%d/%Y').date()
                     dateDifferenceDays = (dateEnd - dateStart).days
 
                 elif days != None:
@@ -195,9 +198,10 @@ class engine:
                     for userProfiles in CONTRIBUTORS:
                         for userProfile in CONTRIBUTORS[userProfiles]:
                             if commit.author.name == userProfile:
-                                if (commit.insertions+commit.deletions) > excludeCommitThreshhold:
-                                    # print("-"*70)
-                                    # print(f"skipping {commit.insertions+commit.deletions} modified lines for user {userProfile} ---------- github ref link -- {REPO_LINK}/commit/{commit.hash}")
+                                if (commit.insertions+commit.deletions) > maxLines:
+                                    if args.v:
+                                        print("-"*70)
+                                        print(f"skipping {commit.insertions+commit.deletions} modified lines for user {userProfile} ---------- github ref link -- {REPO_LINK}/commit/{commit.hash}")
                                     break
                                 for file in commit.modified_files:
                                     if file.filename in self.getAcceptableFiles():
@@ -238,16 +242,9 @@ class engine:
 
 
 
-    def exportCommitsOfUsersReportA(self,days=None, startDate=None, endDate=None):
-        '''gets the total commits of the users in config over the past days specified and exports them to csv format'''
-        string1, contributorReport,dateStart,dateEnd =  self.getCommitsOfUsers(days,datePicker=True,giveFilename=True, csvFormat=True)
-
-        with open(f'reports/activityReport{dateStart}___{dateEnd}.csv', 'w') as f:
-            for key in contributorReport.keys():
-                f.write("%s,%s\n"%(key,contributorReport[key]))
 
 
-    def exportOverviewReportToCsv(self,excludeCommitThreshhold, days=None, giveFilename = False, startDate=None, endDate=None, csvFormat=False):
+    def exportOverviewReportToCsv(self,maxLines, days=None, giveFilename = False, startDate=None, endDate=None, csvFormat=False):
         ''' for exporting data to CSV format 
         following this structure:
         loggedContributors[userProfiles] = {"total commits":0,"total insertions":{"code":0, "comments":0, "logging":0},"total deletions":{"code":0, "comments":0, "logging":0}}
@@ -255,33 +252,38 @@ class engine:
         '''
 
         if days != None:
-            string1, overviewReport, dateStart, dateEnd =  self.getOverviewReport(excludeCommitThreshhold, days=days, csvFormat=False)
+            string1, overviewReport, dateStart, dateEnd =  self.getOverviewReport(maxLines, days=days, csvFormat=False)
        
         elif startDate and endDate != None:
-            string1, overviewReport, dateStart, dateEnd =  self.getOverviewReport(excludeCommitThreshhold, startDate=startDate, endDate=endDate, csvFormat=True)
+            string1, overviewReport, dateStart, dateEnd =  self.getOverviewReport(maxLines, startDate=startDate, endDate=endDate, csvFormat=True)
        
         with open(f'temp/reports/overviewActivityReport{dateStart}___{dateEnd}.csv', 'w') as f:
                 for key in overviewReport.keys():
                     f.write("%s,%s\n"%(key,overviewReport[key]))
         pass
     
-    def exportDetailedReportToCsv(self,excludeCommitThreshhold, days=None, giveFilename = False, startDate=None, endDate=None, csvFormat=False):
+    def exportDetailedReportToCsv(self, exportDir, maxLines=1000, giveFilename = False, startDate=None, endDate=None):
         ''' for exporting data to CSV format 
         date,username,num_lines_changed,file,path,branch'''
 
-        if days != None:
-            detailedReport, dateStart, dateEnd =  self.getDetailedReport(excludeCommitThreshhold, days=days, csvFormat=True)
+        
+  
+        if startDate and endDate != None:
+            detailedReport, dateStart, dateEnd =  self.getDetailedReport(maxLines, startDate=startDate, endDate=endDate, csvFormat=True)
        
-        elif startDate and endDate != None:
-            detailedReport, dateStart, dateEnd =  self.getDetailedReport(excludeCommitThreshhold, startDate=startDate, endDate=endDate, csvFormat=True)
-       
+        else:
+            detailedReport, dateStart, dateEnd =  self.getDetailedReport(maxLines, csvFormat=True)
         keys = detailedReport[0].keys()
 
-        with open(f'temp/reports/detailedActivityReport{dateStart}___{dateEnd}.csv', 'w') as f:
+
+        with open(exportDir, 'w') as f:
+            if args.v:
+                print(f"exporting {len(detailedReport)} records to csv file {exportDir} ...")
             dict_writer = csv.DictWriter(f,keys)
             dict_writer.writeheader()
             dict_writer.writerows(detailedReport)
-
+            if args.v:
+                print("done!")
 
 
 
@@ -295,12 +297,12 @@ class engine:
         return acceptableFiles
     
 
-    def printReportToConsole(self,excludeCommitThreshhold, days=None, startDate=None, endDate=None):
+    def printReportToConsole(self,maxLines, days=None, startDate=None, endDate=None):
         '''print the commits report to console '''
         if days != None:
-            string1, contributorReport =  self.getCommitsOfUsers(excludeCommitThreshhold, days=days, csvFormat=False)
+            string1, contributorReport =  self.getCommitsOfUsers(maxLines, days=days, csvFormat=False)
         elif startDate and endDate != None:
-            string1, contributorReport =  self.getCommitsOfUsers(excludeCommitThreshhold, startDate=startDate, endDate=endDate, csvFormat=False)
+            string1, contributorReport =  self.getCommitsOfUsers(maxLines, startDate=startDate, endDate=endDate, csvFormat=False)
 
         print(string1)
         pprint(contributorReport)
@@ -444,16 +446,38 @@ class engine:
 
 
 if __name__ == "__main__":
-    engineA = engine()
-    # engineA.getNumberModifications()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-exportCSV', help='pass directory of where to export CSV')
+    parser.add_argument('-start', help='start date for querying github repository in m/d/y format')
+    parser.add_argument('-end', help='end date for querying github repository in m/d/y format')
+    parser.add_argument('-maxLines', help='specify acceptable maximum lines modified from commits queried - use for accuracy (default is 1000)')
+    parser.add_argument('-v', help='verbose output - show additional information', action='store_true')
+
+    args = parser.parse_args()
+    if args.exportCSV:
+        if  ".csv" not in args.exportCSV:
+            raise ValueError('option -exportCSV must be used with a filename ending with extension .csv')
+        a = engine()
+        if args.start and args.end:
+            if args.maxLines != None:
+                print(f"specified maximum lines from any one commit is {args.maxLines}")
+                a.exportDetailedReportToCsv(exportDir=args.exportCSV, maxLines=args.maxLines, startDate=args.start, endDate=args.end)
+            else:
+                a.exportDetailedReportToCsv(exportDir=args.exportCSV, maxLines=1000, startDate=args.start, endDate=args.end)
+        else:
+            if args.maxLines != None:
+                print(f"specified maximum lines from any one commit is {args.maxLines}")
+                a.exportDetailedReportToCsv(exportDir=args.exportCSV, maxLines=args.maxLines)
+            else:
+                a.exportDetailedReportToCsv(exportDir=args.exportCSV, maxLines=1000)
+
+
+    # engineA = engine()
     # engineA.printAllCommitStats()
     # engineA.printReportToConsole(300)
     # engineA.printReportToConsole(1000, startDate="2021-1-1", endDate="2021-12-10")
-    engineA.exportDetailedReportToCsv(1000, startDate="2021-12-1", endDate="2021-12-10")
 
     # engineA.reportAdditionsPerFile(days=300,userResearch="Kenneth")
     # engineA.reportFilesEdittedPerCommit(alertCount=3, userResearch="Kenneth", days=300)
     # engineA.reportLinesModifiedPerCommit(alertCount=100, userResearch="Kenneth", days=300)
 
-    # engineA.exportCommitsOfUsers(10)
-    # 
