@@ -4,12 +4,9 @@ from config import CONTRIBUTORS
 from config import LOCAL_PROJECT_DIRECTORY
 from config import IGNORE_DIRECTORY
 from config import REPO_LINK
-from pprint import pprint
 from datetime import timedelta
-from itertools import islice
 import os
 import csv
-import random
 import argparse
 
 
