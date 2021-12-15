@@ -116,7 +116,7 @@ class engine:
                     dateDifferenceDays = (dateEnd - dateStart).days
 
                 else:
-                    # hard-coded 150 years - gets all commits of a repo
+                    # hard-coded 150 years - gets all commits of any repo
                     days = 55000
                     dateDifferenceDays = days
                     dateEnd = datetime.now().date()
