@@ -115,7 +115,9 @@ class engine:
                     dateStart = datetime.strptime(startDate,'%m/%d/%Y').date()
                     dateDifferenceDays = (dateEnd - dateStart).days
 
-                elif days != None:
+                else:
+                    # hard-coded 150 years - gets all commits of a repo
+                    days = 55000
                     dateDifferenceDays = days
                     dateEnd = datetime.now().date()
                     dateStart = dateEnd - timedelta(days)
