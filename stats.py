@@ -66,8 +66,6 @@ project_path
 '''
     
 class engine:
-    def __init__(self):
-        pass
         
     def _AllCommitStats(self):
         '''show multiple useful information field results from the commit object '''
@@ -104,13 +102,13 @@ class engine:
             print("-"*70)
             print("-"*70)
 
-    def getReport(self,maxLines, days=None, startDate=None, endDate=None, export=False):
+    def getReport(self, maxLines, exportDir, startDate=None, endDate=None):
             '''get a detailed report in the following format:
                     date,username,num_lines_changed,file,path,branch,commit
             option:
             maxLines - at what count of lines modified do we no longer track a commit. If a commit exceeds this amount then we will skip it.
             '''
-            dataStructure = []
+            records = []
             commitsObject = Repository(REPO_LINK).traverse_commits()
             for commit in commitsObject:
                #get commits from all branches - skip commits that have already been checked
@@ -161,42 +159,25 @@ class engine:
 
                                             else:
                                                 d["num_lines_changed"] =  d["num_lines_changed"] + 1
-                                        dataStructure.append(d)
+                                        records.append(d)
                 
                                 break
 
-            statisticsString = f"statistics between {datetime.now().date() - timedelta(dateDifferenceDays)} and {datetime.now().date()}"
-            if csvFormat == True:
-                return dataStructure, dateEnd, dateStart
-            else:
-                return statisticsString, dataStructure
 
+            keys = records[0].keys()
 
-    def exportDetailedReportToCsv(self, exportDir, maxLines=1000, startDate=None, endDate=None):
-        ''' for exporting data to CSV format 
-        date,username,num_lines_changed,file,path,branch'''
-
-        if startDate and endDate != None:
-            detailedReport=  self.getDetailedReport(maxLines, startDate=startDate, endDate=endDate, csvFormat=True)
-       
-        else:
-            detailedReport=  self.getDetailedReport(maxLines, csvFormat=True)
+            with open(exportDir, 'w') as f:
+                if args.v:
+                    print(f"exporting {len(records)} records to csv file {exportDir} ...")
+                dict_writer = csv.DictWriter(f,keys)
+                dict_writer.writeheader()
+                dict_writer.writerows(records)
+                if args.v:
+                    print("done!")
         
-        keys = detailedReport[0].keys()
-
-
-        with open(exportDir, 'w') as f:
-            if args.v:
-                print(f"exporting {len(detailedReport)} records to csv file {exportDir} ...")
-            dict_writer = csv.DictWriter(f,keys)
-            dict_writer.writeheader()
-            dict_writer.writerows(detailedReport)
-            if args.v:
-                print("done!")
-
-
 
     def getAcceptableFiles(self):
+        ''' returns a list of filenames to log modified line counts from - ignoring directories and filenames declared in config.py'''
         acceptableFiles = []
         for root, dirs, files in os.walk(LOCAL_PROJECT_DIRECTORY):
             [dirs.remove(d) for d in list(dirs) if d in IGNORE_DIRECTORY]
@@ -220,14 +201,16 @@ if __name__ == "__main__":
         a = engine()
         if args.start and args.end:
             if args.maxLines != None:
-                print(f"specified maximum lines from any one commit is {args.maxLines}")
-                a.exportDetailedReportToCsv(exportDir=args.exportCSV, maxLines=args.maxLines, startDate=args.start, endDate=args.end)
+                if args.v:
+                    print(f"specified maximum lines from any single commit is {args.maxLines}")
+                a.getReport(exportDir=args.exportCSV, maxLines=args.maxLines, startDate=args.start, endDate=args.end)
             else:
-                a.exportDetailedReportToCsv(exportDir=args.exportCSV, maxLines=1000, startDate=args.start, endDate=args.end)
+                a.getReport(exportDir=args.exportCSV, maxLines=1000, startDate=args.start, endDate=args.end)
         else:
             if args.maxLines != None:
-                print(f"specified maximum lines from any one commit is {args.maxLines}")
-                a.exportDetailedReportToCsv(exportDir=args.exportCSV, maxLines=args.maxLines)
+                if args.v:
+                    print(f"specified maximum lines from any single commit is {args.maxLines}")
+                a.getReport(exportDir=args.exportCSV, maxLines=args.maxLines)
             else:
-                a.exportDetailedReportToCsv(exportDir=args.exportCSV, maxLines=1000)
+                a.getReport(exportDir=args.exportCSV, maxLines=1000)
 
