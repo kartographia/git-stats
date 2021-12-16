@@ -66,7 +66,7 @@ class engine:
         
     def _AllCommitStats(self):
         '''show multiple useful information field results from the commit object '''
-        for commit in Repository(REPO_LINK).traverse_commits():
+        for commit in Repository(LOCAL_PROJECT_DIRECTORY).traverse_commits():
             # print(commit.msg)
             # print(commit.project_name)
             # print(commit.parents)
@@ -83,7 +83,7 @@ class engine:
 
     def _AllOptions(self):
         ''' show all options of the commit object '''
-        for commit in Repository(REPO_LINK).traverse_commits():
+        for commit in Repository(LOCAL_PROJECT_DIRECTORY).traverse_commits():
             # for i in commit:
                 # print(i)
             # print(dir(commit))
@@ -106,7 +106,7 @@ class engine:
             maxLines - at what count of lines modified do we no longer track a commit. If a commit exceeds this amount then we will skip it.
             '''
             records = []
-            commitsObject = Repository(REPO_LINK).traverse_commits()
+            commitsObject = Repository(LOCAL_PROJECT_DIRECTORY).traverse_commits()
             for commit in commitsObject:
                #get commits from all branches - skip commits that have already been checked
                 # print("in main branch printout "+ str(commit.in_main_branch))
@@ -129,7 +129,11 @@ class engine:
                                 if (commit.insertions+commit.deletions) > maxLines:
                                     if args.v:
                                         print("-"*70)
-                                        print(f"skipping {commit.insertions+commit.deletions} modified lines for user {userProfile} ---------- github ref link -- {REPO_LINK}/commit/{commit.hash}")
+                                        if REPO_LINK != "":
+                                            print(f"skipping {commit.insertions+commit.deletions} modified lines for user {userProfile} ---------- github ref link -- {REPO_LINK}/commit/{commit.hash}")
+                                        else:
+                                            print(f"skipping {commit.insertions+commit.deletions} modified lines for user {userProfile} ---------- github ref link -- (set your REPO_LINK variable to the URL of your online repository for ref link reporting)")
+
                                     break
                                 for file in commit.modified_files:
                                     if file.filename in self.getAcceptableFiles():
