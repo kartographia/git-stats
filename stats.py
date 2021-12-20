@@ -106,6 +106,8 @@ class engine:
             maxLines - at what count of lines modified do we no longer track a commit. If a commit exceeds this amount then we will skip it.
             '''
             records = []
+            
+            
             commitsObject = Repository(LOCAL_PROJECT_DIRECTORY).traverse_commits()
             for commit in commitsObject:
                #get commits from all branches - skip commits that have already been checked
@@ -137,7 +139,7 @@ class engine:
                                     break
                                 for file in commit.modified_files:
                                     if file.filename in self.getAcceptableFiles():
-                                        d = {"date":commit.committer_date, "username":userProfiles, "num_lines_changed":0, "file":file.filename, "path":None, "branch":next(iter(commit.branches)), "commitNum":commit.hash}
+                                        d = {"date":datetime.date(commit.committer_date), "username":userProfiles, "num_lines_changed":0, "file":file.filename, "path":None, "branch":next(iter(commit.branches)), "commitNum":commit.hash}
 
                                         for line in file.diff_parsed["added"]:
                                             if "console.log" in line[1]:
