@@ -111,7 +111,7 @@ class engine:
             # !=True means !=False
             if args.useContributors != True:
                 self.CONTRIBUTORS = configGroup[groupNickname]["CONTRIBUTORS"]
-                self.useAll = False
+                self.exportRawUsername = False
             else:
                 # this creates a list containing every capital and lower case alphabetical character
                 # when the script matches any username containing one of these characters it will export the username + record (all github usernames require at least one of these characters so it should always match)
@@ -122,7 +122,7 @@ class engine:
                     l.append(i)
                 
                 self.CONTRIBUTORS = {"all": l}
-                self.useAll = True
+                self.exportRawUsername = True
             self.REPO_LINK = configGroup[groupNickname]["REPO_LINK"]
             self.IGNORE_DIRECTORY = configGroup[groupNickname]["IGNORE_DIRECTORY"]
             
@@ -163,9 +163,9 @@ class engine:
                                     break
                                 for file in commit.modified_files:
                                     if file.filename in self.getAcceptableFiles():
-                                        if self.useAll == True:
+                                        if self.exportRawUsername == True:
                                             d = {"date":datetime.date(commit.committer_date), "username":commit.author.name, "num_lines_changed":0, "file":file.filename, "path":None, "branch":next(iter(commit.branches)), "commitNum":commit.hash}
-                                        elif self.useAll == False:
+                                        elif self.exportRawUsername == False:
                                             d = {"date":datetime.date(commit.committer_date), "username":userProfiles, "num_lines_changed":0, "file":file.filename, "path":None, "branch":next(iter(commit.branches)), "commitNum":commit.hash}
 
                                         for line in file.diff_parsed["added"]:
