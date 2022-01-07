@@ -106,24 +106,23 @@ class engine:
             '''
             # pull information from config
             self.LOCAL_PROJECT_DIRECTORY = configGroup[groupNickname]["LOCAL_PROJECT_DIRECTORY"]
-            print(args.useContributors)
             # this is backwards logic - we set the script so when the useContributors option is not used, it should be set to be False
-            # instead it is automatically set to True. So False means True here
+            # instead it is automatically set to True (in this particular argParsing library). So False means True here
             # !=True means !=False
             if args.useContributors != True:
                 self.CONTRIBUTORS = configGroup[groupNickname]["CONTRIBUTORS"]
+                self.useAll = False
             else:
                 # this creates a list containing every capital and lower case alphabetical character
-                # when the script matches any username containing one of these characters it will export the username + record (all github usernames require at least one of these characters)
+                # when the script matches any username containing one of these characters it will export the username + record (all github usernames require at least one of these characters so it should always match)
                 l = []
                 for i in string.ascii_uppercase:
                     l.append(i)
                 for i in string.ascii_lowercase:
                     l.append(i)
-                print(l)
+                
                 self.CONTRIBUTORS = {"all": l}
-
-            print("contributors are: " +str(self.CONTRIBUTORS))
+                self.useAll = True
             self.REPO_LINK = configGroup[groupNickname]["REPO_LINK"]
             self.IGNORE_DIRECTORY = configGroup[groupNickname]["IGNORE_DIRECTORY"]
             
@@ -150,23 +149,24 @@ class engine:
 
                 if (dateEnd - datetime.fromisoformat(str(commit.committer_date)).date()).days < dateDifferenceDays:
                     for userProfiles in self.CONTRIBUTORS:
-                        print("user profiles: " + userProfiles)
                         for userProfile in self.CONTRIBUTORS[userProfiles]:
-                            print(userProfile)
                             # if commit.author.name == userProfile:
                             if userProfile in commit.author.name:
                                 if (commit.insertions+commit.deletions) > maxLines:
                                     if args.v:
                                         print("-"*70)
                                         if self.REPO_LINK != "":
-                                            print(f"skipping {commit.insertions+commit.deletions} modified lines for user {userProfile} ---------- github ref link -- {self.REPO_LINK}/commit/{commit.hash}")
+                                            print(f"skipping {commit.insertions+commit.deletions} modified lines for username {commit.author.name} ---------- github ref link -- {self.REPO_LINK}/commit/{commit.hash}")
                                         else:
-                                            print(f"skipping {commit.insertions+commit.deletions} modified lines for user {userProfile} ---------- github ref link -- (set your REPO_LINK variable to the URL of your online repository for ref link reporting)")
+                                            print(f"skipping {commit.insertions+commit.deletions} modified lines for username {commit.author.name} ---------- github ref link -- (set your REPO_LINK variable to the URL of your online repository for ref link reporting)")
 
                                     break
                                 for file in commit.modified_files:
                                     if file.filename in self.getAcceptableFiles():
-                                        d = {"date":datetime.date(commit.committer_date), "username":userProfiles, "num_lines_changed":0, "file":file.filename, "path":None, "branch":next(iter(commit.branches)), "commitNum":commit.hash}
+                                        if self.useAll == True:
+                                            d = {"date":datetime.date(commit.committer_date), "username":commit.author.name, "num_lines_changed":0, "file":file.filename, "path":None, "branch":next(iter(commit.branches)), "commitNum":commit.hash}
+                                        elif self.useAll == False:
+                                            d = {"date":datetime.date(commit.committer_date), "username":userProfiles, "num_lines_changed":0, "file":file.filename, "path":None, "branch":next(iter(commit.branches)), "commitNum":commit.hash}
 
                                         for line in file.diff_parsed["added"]:
                                             if "console.log" in line[1]:
