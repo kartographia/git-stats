@@ -94,7 +94,7 @@ configGroup = {
         "REPO_LINK": "https://github.com/<username>/<repo>"
     },
 
-    #------------------------ Project 4 ----------------------------------------
+    #------------------------ Project 4 (for use without -useContributors tag) ----------------------------------------
     "project4Nickname":{
         # where the current repository is located on your file system
         "LOCAL_PROJECT_DIRECTORY": "/home/<myusername>/<my main github directory>/<cloned repo folder>",
