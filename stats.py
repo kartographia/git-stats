@@ -110,7 +110,16 @@ class engine:
             # instead it is automatically set to True (in this particular argParsing library). So False means True here
             # !=True means !=False
             if args.useContributors != True:
-                self.CONTRIBUTORS = configGroup[groupNickname]["CONTRIBUTORS"]
+                try:
+                    self.CONTRIBUTORS = configGroup[groupNickname]["CONTRIBUTORS"]
+                except:
+                    raise Exception("\
+\n\n\n------------------------------------------------------------------------------------\n\
+You specified to use the -useContributors option and we are not able to locate\
+ the dict containing contributors,\n please verify the CONTRIBUTORS format in config.py is correct and/or declared.\n\
+if you would like to use this script without using contributor profiles,\n drop the -useContributors option from the command.\
+\n------------------------------------------------------------------------------------\n ")
+
                 self.exportRawUsername = False
             else:
                 # this creates a list containing every capital and lower case alphabetical character
