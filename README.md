@@ -15,7 +15,7 @@ Run this project via a command-line that has access to a python3 installation, e
 * `-end <m/d/y format date>` -- end date for querying GitHub repository (m/d/y format - if not declared all records will be returned) --**optional**
 * `-maxLines <int>` -- declare a maximum number of lines modified per tracked commit (default is 1000) -- **optional**
 * `-v` -- verbose output -- **optional**
-* `-useContributors` -- Instruct the script on whether to use the declared contributors to build the report -- **optional**
+* `-useContributors` -- Instruct the script on whether to use the declared contributors to build the report -- Default is False **optional**
 
 
 
