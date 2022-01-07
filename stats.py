@@ -5,6 +5,8 @@ from datetime import timedelta
 import os
 import csv
 import argparse
+import re
+import string
 
 
 
@@ -104,9 +106,28 @@ class engine:
             '''
             # pull information from config
             self.LOCAL_PROJECT_DIRECTORY = configGroup[groupNickname]["LOCAL_PROJECT_DIRECTORY"]
-            self.CONTRIBUTORS = configGroup[groupNickname]["CONTRIBUTORS"]
+            print(args.useContributors)
+            # this is backwards logic - we set the script so when the useContributors option is not used, it should be set to be False
+            # instead it is automatically set to True. So False means True here
+            # !=True means !=False
+            if args.useContributors != True:
+                self.CONTRIBUTORS = configGroup[groupNickname]["CONTRIBUTORS"]
+            else:
+                # this creates a list containing every capital and lower case alphabetical character
+                # when the script matches any username containing one of these characters it will export the username + record (all github usernames require at least one of these characters)
+                l = []
+                for i in string.ascii_uppercase:
+                    l.append(i)
+                for i in string.ascii_lowercase:
+                    l.append(i)
+                print(l)
+                self.CONTRIBUTORS = {"all": l}
+
+            print("contributors are: " +str(self.CONTRIBUTORS))
             self.REPO_LINK = configGroup[groupNickname]["REPO_LINK"]
             self.IGNORE_DIRECTORY = configGroup[groupNickname]["IGNORE_DIRECTORY"]
+            
+
 
             records = []
             
@@ -129,8 +150,11 @@ class engine:
 
                 if (dateEnd - datetime.fromisoformat(str(commit.committer_date)).date()).days < dateDifferenceDays:
                     for userProfiles in self.CONTRIBUTORS:
+                        print("user profiles: " + userProfiles)
                         for userProfile in self.CONTRIBUTORS[userProfiles]:
-                            if commit.author.name == userProfile:
+                            print(userProfile)
+                            # if commit.author.name == userProfile:
+                            if userProfile in commit.author.name:
                                 if (commit.insertions+commit.deletions) > maxLines:
                                     if args.v:
                                         print("-"*70)
@@ -174,6 +198,9 @@ class engine:
 
             keys = records[0].keys()
 
+            index = exportDir.find(".csv")
+            exportDir = exportDir[:index] + str(datetime.now().replace(microsecond=0)).replace(" ", "-") + exportDir[index:]
+
             with open(exportDir, 'w') as f:
                 if args.v:
                     print(f"exporting {len(records)} records to csv file {exportDir} ...")
@@ -202,6 +229,8 @@ if __name__ == "__main__":
     parser.add_argument('-maxLines', help='specify acceptable maximum lines modified from commits queried - use for accuracy (default is 1000)')
     parser.add_argument('-v', help='verbose output - show additional information', action='store_true')
     parser.add_argument('-nickname', help="enter the repository nickname set in config.py to use (this contains all of the data needed to target the correct repository)")
+    parser.add_argument('-useContributors', help="Instruct the script on whether to use the declared contributors to build the report", action="store_false")
+
     args = parser.parse_args()
     if args.exportCSV:
         if  ".csv" not in args.exportCSV:
