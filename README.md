@@ -29,6 +29,8 @@ You will need to create a config.py file that has the following stored in a dict
 * The repository link you would like to track - variable String REPO_LINK
 * The repository location on your file system - variable String LOCAL_PROJECT_DIRECTORY
 * The directories you wish to ignore when adding up the "modified lines" count - list object IGNORE_DIRECTORY
+
+# Optional feature for this project 
 * The list of nicknamed contributors and their relative GitHub Usernames - dictionary (key-value pairs) object CONTRIBUTORS
 
 These will automatically be imported into the main script from your created `config.py` file when running the simple command in the command-line.
@@ -92,7 +94,7 @@ configGroup = {
         "REPO_LINK": "https://github.com/<username>/<repo>"
     },
 
-    #------------------------ Project 4 ----------------------------------------
+    #------------------------ Project 4 (for use without -useContributors tag) ----------------------------------------
     "project4Nickname":{
         # where the current repository is located on your file system
         "LOCAL_PROJECT_DIRECTORY": "/home/<myusername>/<my main github directory>/<cloned repo folder>",
