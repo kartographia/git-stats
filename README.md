@@ -9,13 +9,16 @@
 Run this project via a command-line that has access to a python3 installation, enter the project directory where **stats.py** file is located and run the command with the following options: 
 
 ## Options
+### note: -getAll and -nickname are optionally required which means that either one or the other must be used, but not both. 
 * `-exportCSV <path/to/file.csv>` -- directory and filename with csv file extension to export to -- **required**
-* `-nickname` -- enter the repository nickname set in config.py to use (this contains all of the data needed to target the correct repository) -- **required**
+* `-getAll` -- get all of the repositories listed in config.py exported to one csv -- Default is False **optionally required**
+* `-nickname` -- enter the repository nickname set in config.py to use (this contains all of the data needed to target the correct repository) -- **optionally required**
 * `-start <m/d/y format date>` -- start date for querying GitHub repository (m/d/y format - if not declared all records will be returned) -- **optional**
 * `-end <m/d/y format date>` -- end date for querying GitHub repository (m/d/y format - if not declared all records will be returned) --**optional**
 * `-maxLines <int>` -- declare a maximum number of lines modified per tracked commit (default is 1000) -- **optional**
 * `-v` -- verbose output -- **optional**
 * `-useContributors` -- Instruct the script on whether to use the declared contributors to build the report -- Default is False **optional**
+
 
 
 
