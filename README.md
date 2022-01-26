@@ -11,7 +11,7 @@ Run this project via a command-line that has access to a python3 installation, e
 ## Options
 ### note: -getAll and -nickname are optionally required which means that either one or the other must be used, but not both. 
 * `-exportCSV <path/to/file.csv>` -- directory and filename with csv file extension to export to -- **required**
-* `-getAll` -- get all of the repositories listed in config.py exported to one csv -- Default is False **optionally required**
+* `-getAll` -- get all of the repositories listed in config.py exported to one csv -- Default is False -- **optionally required**
 * `-nickname` -- enter the repository nickname set in config.py to use (this contains all of the data needed to target the correct repository) -- **optionally required**
 * `-start <m/d/y format date>` -- start date for querying GitHub repository (m/d/y format - if not declared all records will be returned) -- **optional**
 * `-end <m/d/y format date>` -- end date for querying GitHub repository (m/d/y format - if not declared all records will be returned) --**optional**
