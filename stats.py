@@ -1,7 +1,7 @@
 from pydriller import Repository
 from datetime import datetime
 from config import configGroup
-from config import LOCAL_PROJECT_DIRECTORY
+# from config import LOCAL_PROJECT_DIRECTORY
 from datetime import timedelta
 import os
 import csv
@@ -9,8 +9,7 @@ import argparse
 import re
 import string
 import time
-
-
+import sys
 
 '''
 https://pydriller.readthedocs.io/en/latest/reference.html#module-pydriller.repository
@@ -103,144 +102,185 @@ class engine:
             print("-"*70)
 
     def getReport(self, maxLines, exportDir, startDate=None, endDate=None):
-            '''get a detailed report in the following format:
-                    date,username,num_lines_changed,file,path,branch,commit
-            option:
-            maxLines - at what count of lines modified do we no longer track a commit. If a commit exceeds this amount then we will skip it.
-            '''
-            if args.getAll == True:
-                groupNicknames = []
+        '''get a detailed report in the following format:
+                date,username,num_lines_changed,file,path,branch,commit
+        option:
+        maxLines - at what count of lines modified do we no longer track a commit. If a commit exceeds this amount then we will skip it.
+        '''
+        if args.getAll == True:
+            groupNicknames = []
 
-                for groupNickname in configGroup:
-                    groupNicknames.append(groupNickname)
+            for groupNickname in configGroup:
+                groupNicknames.append(groupNickname)
+        
+        else:
+            groupNicknames = [args.nickname]
+
+        if args.v:
+            s = "collecting records from the following repositories: "
+            for name in groupNicknames:
+                s+= f"{name}, "
             
-            else:
-                groupNicknames = [args.nickname]
+            s += "...\n"
+            print(s)
+            time.sleep(2.5)
 
+
+        for groupNickname in groupNicknames:
             if args.v:
-                s = "\n\ncollecting records from the following repositories: "
-                for name in groupNicknames:
-                    s+= f"{name}, "
-                
-                s += "...\n\n"
-                print(s)
-                time.sleep(2.5)
+                print(f"Collecting records from repository: {groupNickname}")
+                time.sleep(1)
 
-
-            for groupNickname in groupNicknames:
-                if args.v:
-                    print(f"\n\ncollecting records from repository: {groupNickname}\n\n\n")
-                    time.sleep(1)
-
-                # pull information from config
-                self.LOCAL_PROJECT_DIRECTORY = configGroup[groupNickname]["LOCAL_PROJECT_DIRECTORY"]
-                # this is backwards logic - we set the script so when the useContributors option is not used, it should be set to be False
-                # instead it is automatically set to True (in this particular argParsing library). So False means True here
-                # !=True means !=False
-                if args.useContributors != True:
-                    try:
-                        self.CONTRIBUTORS = configGroup[groupNickname]["CONTRIBUTORS"]
-                    except:
-                        raise Exception("\
-    \n\n\n------------------------------------------------------------------------------------\n\
-    You specified to use the -useContributors option and we are not able to locate\
-    the dict containing contributors,\n please verify the CONTRIBUTORS format in config.py is correct and/or declared.\n\
-    if you would like to use this script without using contributor profiles,\n drop the -useContributors option from the command.\
-    \n------------------------------------------------------------------------------------\n ")
+            # pull information from config
+            self.LOCAL_PROJECT_DIRECTORY = configGroup[groupNickname]["LOCAL_PROJECT_DIRECTORY"]
+            # this is backwards logic - we set the script so when the 
+            # useContributors option is not used, it should be set to be False
+            # instead it is automatically set to True (in this particular 
+            # argParsing library). So False means True here.
+            # !=True means !=False
+            if args.useContributors != True:
+                try:
+                    self.CONTRIBUTORS = configGroup[groupNickname]["CONTRIBUTORS"]
+                except:
+                    raise Exception((
+                        "-----------------------------------------------------------------------------------\n"
+                        "You specified to use the -useContributors option and we are not able to locate"
+                        "the dict containing contributors,\n please verify the CONTRIBUTORS format "
+                        "in config.py is correct and/or declared.\n"
+                        "if you would like to use this script without using contributor profiles,\n"
+                        "drop the -useContributors option from the command.\n"
+                        "------------------------------------------------------------------------------------\n "
+                    ))
 
                     self.exportRawUsername = False
-                else:
-                    # this creates a list containing every capital and lower case alphabetical character
-                    # when the script matches any username containing one of these characters it will export the username + record (all github usernames require at least one of these characters so it should always match)
-                    l = []
-                    for i in string.ascii_uppercase:
-                        l.append(i)
-                    for i in string.ascii_lowercase:
-                        l.append(i)
-                    
-                    self.CONTRIBUTORS = {"all": l}
-                    self.exportRawUsername = True
-                self.REPO_LINK = configGroup[groupNickname]["REPO_LINK"]
-                self.IGNORE_DIRECTORY = configGroup[groupNickname]["IGNORE_DIRECTORY"]
+
+            else:
+                # this creates a list containing every capital and lower 
+                # case alphabetical character
+                # when the script matches any username containing one of 
+                # these characters it will export the username + record 
+                # (all github usernames require at least one of these 
+                # characters so it should always match)
+                l = string.ascii_uppercase + string.ascii_lowercase
                 
-                try:
-                    records
-                except:
-                    records = []
+                self.CONTRIBUTORS = {"all": l}
+                self.exportRawUsername = True
 
-                commitsObject = Repository(self.LOCAL_PROJECT_DIRECTORY).traverse_commits()
-                for commit in commitsObject:
-                #get commits from all branches - skip commits that have already been checked
-                    # print("in main branch printout "+ str(commit.in_main_branch))
-                    if startDate != None and endDate != None:
-                        dateEnd = datetime.strptime(endDate,'%m/%d/%Y').date()
-                        dateStart = datetime.strptime(startDate,'%m/%d/%Y').date()
-                        dateDifferenceDays = (dateEnd - dateStart).days
+            self.REPO_LINK = configGroup[groupNickname]["REPO_LINK"]
+            self.IGNORE_DIRECTORY = configGroup[groupNickname]["IGNORE_DIRECTORY"]
+            self.OK_FILE_TYPES = configGroup[groupNickname]["OK_FILE_TYPES"]
+            
+            try:
+                records
+            except:
+                records = []
 
-                    else:
-                        # hard-coded 150 years - gets all commits of any repo
-                        days = 55000
-                        dateDifferenceDays = days
-                        dateEnd = datetime.now().date()
-                        dateStart = dateEnd - timedelta(days)
+            # # Do this once instead of inside every for loop iteration
+            # acceptable_files = self.getAcceptableFiles()
+            # print(acceptable_files)
 
-                    if (dateEnd - datetime.fromisoformat(str(commit.committer_date)).date()).days < dateDifferenceDays:
-                        for userProfiles in self.CONTRIBUTORS:
-                            for userProfile in self.CONTRIBUTORS[userProfiles]:
-                                # if commit.author.name == userProfile:
-                                if userProfile in commit.author.name:
-                                    if (commit.insertions+commit.deletions) > maxLines:
-                                        if args.v:
-                                            print("-"*70)
-                                            if self.REPO_LINK != "":
-                                                print(f"skipping {commit.insertions+commit.deletions} modified lines for username {commit.author.name} ---------- github ref link -- {self.REPO_LINK}/commit/{commit.hash}")
-                                            else:
-                                                print(f"skipping {commit.insertions+commit.deletions} modified lines for username {commit.author.name} ---------- github ref link -- (set your REPO_LINK variable to the URL of your online repository for ref link reporting)")
+            commitsObject = Repository(self.LOCAL_PROJECT_DIRECTORY).traverse_commits()
+            for commit in commitsObject:
+            #get commits from all branches - skip commits that have already been checked
+                # print("in main branch printout "+ str(commit.in_main_branch))
+                if startDate != None and endDate != None:
+                    dateEnd = datetime.strptime(endDate,'%m/%d/%Y').date()
+                    dateStart = datetime.strptime(startDate,'%m/%d/%Y').date()
+                    dateDifferenceDays = (dateEnd - dateStart).days
 
-                                        break
-                                    for file in commit.modified_files:
-                                        if file.filename in self.getAcceptableFiles():
+                else:
+                    # hard-coded 150 years - gets all commits of any repo
+                    days = 55000
+                    dateDifferenceDays = days
+                    dateEnd = datetime.now().date()
+                    dateStart = dateEnd - timedelta(days)
 
-                                            tempA = self.REPO_LINK.find("https://github.com/") + len("https://github.com/")
-                                            tempB = self.REPO_LINK.find(f"/{commit.project_name}")
-                                            organization = self.REPO_LINK[tempA:tempB]
+                committer_date = datetime.fromisoformat(str(commit.committer_date)).date()
+                how_long_ago = (dateEnd - committer_date).days
+                # Skip commits that were too long ago
+                if how_long_ago > dateDifferenceDays:
+                    continue
 
-                                            if self.exportRawUsername == True:
-                                                d = {"date":datetime.date(commit.committer_date), "username":commit.author.name, "num_lines_changed":0, "file":file.filename, "path":None, "branch":next(iter(commit.branches)), "commitNum":commit.hash, "repository":commit.project_name, "organization":organization}
-                                            elif self.exportRawUsername == False:
-                                                d = {"date":datetime.date(commit.committer_date), "username":userProfiles, "num_lines_changed":0, "file":file.filename, "path":None, "branch":next(iter(commit.branches)), "commitNum":commit.hash, "repository":commit.project_name, "organization":organization}
+                for userProfiles in self.CONTRIBUTORS:
+                    for userProfile in self.CONTRIBUTORS[userProfiles]:
+                        # if commit.author.name == userProfile:
+                        # Skip users not specified in config
+                        if userProfile not in commit.author.name:
+                            continue
 
-                                            for line in file.diff_parsed["added"]:
-                                                if "console.log" in line[1]:
-                                                    pass
-                                                elif "#" in line[1]:
-                                                    pass
-                                                elif (line[1].isspace() == True):
-                                                    pass
+                        # # Skip commits with too many lines (default 1000)
+                        # if (commit.insertions+commit.deletions) > maxLines:
+                        #     if args.v:
+                        #         print("-"*70)
+                        #         if self.REPO_LINK != "":
+                        #             print(f"skipping {commit.insertions+commit.deletions} modified lines for username {commit.author.name} ---------- github ref link -- {self.REPO_LINK}/commit/{commit.hash}")
+                        #         else:
+                        #             print(f"skipping {commit.insertions+commit.deletions} modified lines for username {commit.author.name} ---------- github ref link -- (set your REPO_LINK variable to the URL of your online repository for ref link reporting)")
+                        #     continue
 
-                                                else:
-                                                    d["num_lines_changed"] =  d["num_lines_changed"] + 1
-                                            
-                                            for line in file.diff_parsed["deleted"]:
-                                                if "console.log" in line[1]:
-                                                    pass
+                        for file in commit.modified_files:
+                            file_extension = '.'+file.filename.split('.')[-1]
+                            if file_extension not in self.OK_FILE_TYPES:
+                                sys.stdout.write(f"\rSkipping {file.filename} due to file extension"+" "*40)
+                                sys.stdout.flush()
+                                continue
 
-                                                elif "#" in line[1]:
-                                                    pass
+                            organization = self.REPO_LINK.split('github.com/')[1].split(commit.project_name)[0]
 
-                                                elif (line[1].isspace() == True or line[1] == ""):
-                                                    pass
+                            if self.exportRawUsername == True:
+                                d = {
+                                    "date":datetime.date(commit.committer_date),
+                                    "username":commit.author.name,
+                                    "num_lines_changed":0,
+                                    "file":file.filename,
+                                    "path":None,
+                                    "branch":next(iter(commit.branches)),
+                                    "commitNum":commit.hash,
+                                    "repository":commit.project_name,
+                                    "organization":organization
+                                }
+                            elif self.exportRawUsername == False:
+                                d = {
+                                    "date":datetime.date(commit.committer_date),
+                                    "username":userProfiles,
+                                    "num_lines_changed":0,
+                                    "file":file.filename,
+                                    "path":None,
+                                    "branch":next(iter(commit.branches)),
+                                    "commitNum":commit.hash,
+                                    "repository":commit.project_name,
+                                    "organization":organization
+                                }
 
-                                                else:
-                                                    d["num_lines_changed"] =  d["num_lines_changed"] + 1
-                                            records.append(d)
-                    
-                                    break
+                            for line in file.diff_parsed["added"]:
+                                if "console.log" in line[1]:
+                                    pass
+                                elif "#" in line[1]:
+                                    pass
+                                elif (line[1].isspace() == True):
+                                    pass
 
+                                else:
+                                    d["num_lines_changed"] =  d["num_lines_changed"] + 1
+                            
+                            for line in file.diff_parsed["deleted"]:
+                                if "console.log" in line[1]:
+                                    pass
+
+                                elif "#" in line[1]:
+                                    pass
+
+                                elif (line[1].isspace() == True or line[1] == ""):
+                                    pass
+
+                                else:
+                                    d["num_lines_changed"] =  d["num_lines_changed"] + 1
+                            records.append(d)
+    
             keys = records[0].keys()
 
-            index = exportDir.find(".csv")
-            exportDir = exportDir[:index] + str(datetime.now().replace(microsecond=0)).replace(" ", "-") + exportDir[index:]
+            datestr = str(datetime.now().replace(microsecond=0)).replace(" ", "-").replace(':', '.')
+            exportDir = exportDir.replace('.csv', '') + '-' + datestr + '.csv'
 
             with open(exportDir, 'w') as f:
                 if args.v:
@@ -252,14 +292,16 @@ class engine:
                     print("done!")
         
 
-    def getAcceptableFiles(self):
-        ''' returns a list of filenames to log modified line counts from - ignoring directories and filenames declared in config.py'''
-        acceptableFiles = []
-        for root, dirs, files in os.walk(self.LOCAL_PROJECT_DIRECTORY):
-            [dirs.remove(d) for d in list(dirs) if d in self.IGNORE_DIRECTORY]
-            for file in files:
-                acceptableFiles.append(file)
-        return acceptableFiles
+    # def getAcceptableFiles(self):
+    #     ''' returns a list of filenames to log modified line counts from - ignoring directories and filenames declared in config.py'''
+    #     acceptableFiles = []
+    #     for root, dirs, files in os.walk(self.LOCAL_PROJECT_DIRECTORY):
+    #         [dirs.remove(d) for d in list(dirs) if d in self.IGNORE_DIRECTORY]
+    #         for file in files:
+    #             file_extension = '.'+file.split('.')[-1]
+    #             if file_extension in self.OK_FILE_TYPES:
+    #                 acceptableFiles.append(file)
+    #     return acceptableFiles
     
 
 if __name__ == "__main__":
