@@ -214,6 +214,10 @@ class engine:
                         sys.stdout.flush()
                         continue
 
+                    # Make sure not too many lines
+                    if len(file.diff_parsed['added']) + len(file.diff_parsed['deleted']) > 10000:
+                        continue
+
                     contributor_name = self.ALIAS_TO_NAME.get(commit.author.name, commit.author.name)
 
                     d = {
