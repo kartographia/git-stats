@@ -175,7 +175,7 @@ class engine:
             
             commitsObject = Repository(self.LOCAL_PROJECT_DIRECTORY).traverse_commits()
             for commit in commitsObject:
-                organization = self.REPO_LINK.split('github.com/')[1].split(commit.project_name)[0]
+                organization = self.REPO_LINK.split('github.com/')[1].split(commit.project_name)[0].strip('/')
                 
                 if startDate != None and endDate != None:
                     dateEnd = datetime.strptime(endDate,'%m/%d/%Y').date()
@@ -222,14 +222,16 @@ class engine:
 
                     d = {
                         "date":datetime.date(commit.committer_date),
-                        "username": contributor_name,
+                        "username": commit.author.name,
+                        "contributor": contributor_name,
                         "num_lines_changed":0,
                         "file":file.filename,
                         "path": None,
                         "branch":'|'.join(commit.branches),
                         "commitNum":commit.hash,
                         "repository":commit.project_name,
-                        "organization":organization
+                        "organization":organization,
+                        "filetype":file_extension,
                     }
 
                     for line in file.diff_parsed["added"]:
