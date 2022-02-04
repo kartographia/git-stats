@@ -143,6 +143,9 @@ class Engine:
             print(s)
             time.sleep(2.5)
 
+        # list of file types that were ignored by the script 
+        self.ignored_file_types = []
+        records = []
 
         for group_nickname in group_nicknames:
             if args.v:
@@ -152,8 +155,6 @@ class Engine:
             # pull information from config
             self.LOCAL_PROJECT_DIRECTORY = CONFIG_GROUP[group_nickname]["LOCAL_PROJECT_DIRECTORY"]
 
-            # list of file types that were ignored by the script 
-            self.ignored_file_types = []
 
             if args.useContributors == True:
                 try:
@@ -174,10 +175,6 @@ class Engine:
             self.REPO_LINK = CONFIG_GROUP[group_nickname]["REPO_LINK"]
             self.OK_FILE_TYPES = CONFIG_GROUP[group_nickname]["OK_FILE_TYPES"]
             
-            try:
-                records
-            except:
-                records = []
             
             commits_object = Repository(self.LOCAL_PROJECT_DIRECTORY).traverse_commits()
             for commit in commits_object:
