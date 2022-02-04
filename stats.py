@@ -152,7 +152,7 @@ class Engine:
             # pull information from config
             self.LOCAL_PROJECT_DIRECTORY = CONFIG_GROUP[group_nickname]["LOCAL_PROJECT_DIRECTORY"]
             
-            if args.useContributors:
+            if args.useContributors == True:
                 try:
                     self.CONTRIBUTORS = CONFIG_GROUP[group_nickname]["CONTRIBUTORS"]
                     self.ALIAS_TO_NAME = {alias: name for name, l in self.CONTRIBUTORS.items() for alias in l}
@@ -167,7 +167,6 @@ class Engine:
                         "drop the -useContributors option from the command.\n"
                         "------------------------------------------------------------------------------------\n "
                     ))
-
 
             self.REPO_LINK = CONFIG_GROUP[group_nickname]["REPO_LINK"]
             self.OK_FILE_TYPES = CONFIG_GROUP[group_nickname]["OK_FILE_TYPES"]
@@ -274,18 +273,22 @@ if __name__ == "__main__":
     parser.add_argument('-maxLines', help='specify acceptable maximum lines modified from commits queried - use for accuracy (default is 1000)')
     parser.add_argument('-v', help='verbose output - show additional information', action='store_true')
     parser.add_argument('-nickname', help="enter the repository nickname set in config.py to use (this contains all of the data needed to target the correct repository)")
-    parser.add_argument('-useContributors', help="Instruct the script on whether to use the declared contributors to build the report", action="store_false")
+    parser.add_argument('-useContributors', help="Instruct the script on whether to use the declared contributors to build the report", action="store_true")
     parser.add_argument('-optionsPrint', help="use this to print the available options of a commit (shows whats available to be used as columns in a csv" ,action="store_true")
     parser.add_argument('-getAll', help="use this to get all of the repositories listed in config.py exported to one csv", action="store_true")
 
 
     args = parser.parse_args()
+
     if args.optionsPrint == False:
 
         if args.nickname == None and args.getAll == False:
             raise ValueError("\n\nYou must either use a nicknamed repo from config ( -nickname <repoName> ) or use option -getAll to collect records from all repos declared in config")
 
-        if args.exportCSV:
+        if args.exportCSV == None:
+            raise ValueError("\n\n Please specify an absolute path to directory to export CSV to, including filename and extension")
+            
+        else:
             if  ".csv" not in args.exportCSV:
                 raise ValueError('option -exportCSV must be used with a filename ending with extension .csv')
 
@@ -294,7 +297,6 @@ if __name__ == "__main__":
 
             elif args.getAll == True:
                 pass
-            
             a = Engine()
             if args.start and args.end:
                 if args.maxLines != None:
