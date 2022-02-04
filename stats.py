@@ -151,7 +151,10 @@ class Engine:
 
             # pull information from config
             self.LOCAL_PROJECT_DIRECTORY = CONFIG_GROUP[group_nickname]["LOCAL_PROJECT_DIRECTORY"]
-            
+
+            # list of file types that were ignored by the script 
+            self.ignored_file_types = []
+
             if args.useContributors == True:
                 try:
                     self.CONTRIBUTORS = CONFIG_GROUP[group_nickname]["CONTRIBUTORS"]
@@ -171,7 +174,10 @@ class Engine:
             self.REPO_LINK = CONFIG_GROUP[group_nickname]["REPO_LINK"]
             self.OK_FILE_TYPES = CONFIG_GROUP[group_nickname]["OK_FILE_TYPES"]
             
-            records = []
+            try:
+                records
+            except:
+                records = []
             
             commits_object = Repository(self.LOCAL_PROJECT_DIRECTORY).traverse_commits()
             for commit in commits_object:
@@ -215,6 +221,7 @@ class Engine:
                         if args.v:
                             sys.stdout.write(f"\rSkipping {file.filename} due to file extension"+" "*40)
                             sys.stdout.flush()
+                        self.ignored_file_types.append(file_extension) if file_extension not in self.ignored_file_types else self.ignored_file_types
                         continue
 
 
@@ -248,22 +255,23 @@ class Engine:
                     if d["num_lines_changed"] > 0:
                         records.append(d)
     
-            # Remove duplicate records. records is a list of dicts
-            records = [dict(t) for t in {tuple(d.items()) for d in records}]
+        # Remove duplicate records. records is a list of dicts
+        records = [dict(t) for t in {tuple(d.items()) for d in records}]
+        keys = records[0].keys()
 
-            keys = records[0].keys()
 
-            datestr = str(datetime.now().replace(microsecond=0)).replace(" ", "-").replace(':', '.')
-            export_dir = export_dir.replace('.csv', '') + '-' + datestr + '.csv'
+        datestr = str(datetime.now().replace(microsecond=0)).replace(" ", "-").replace(':', '.')
+        export_dir = export_dir.replace('.csv', '') + '-' + datestr + '.csv'
 
-            with open(export_dir, 'w') as f:
-                if args.v:
-                    print(f"\n\nexporting {len(records)} records to csv file {export_dir} ...")
-                dict_writer = csv.DictWriter(f,keys)
-                dict_writer.writeheader()
-                dict_writer.writerows(records)
-                if args.v:
-                    print("done!")
+        with open(export_dir, 'w') as f:
+            if args.v:
+                print(f"\n\nexporting {len(records)} records to csv file {export_dir} ...")
+            dict_writer = csv.DictWriter(f,keys)
+            dict_writer.writeheader()
+            dict_writer.writerows(records)
+        if args.v:
+            print("done!")
+            print(f"ignored file types were:\n\n {self.ignored_file_types}")
         
     
 
