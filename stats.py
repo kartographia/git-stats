@@ -151,21 +151,23 @@ class Engine:
 
             # pull information from config
             self.LOCAL_PROJECT_DIRECTORY = CONFIG_GROUP[group_nickname]["LOCAL_PROJECT_DIRECTORY"]
+            
+            if args.useContributors:
+                try:
+                    self.CONTRIBUTORS = CONFIG_GROUP[group_nickname]["CONTRIBUTORS"]
+                    self.ALIAS_TO_NAME = {alias: name for name, l in self.CONTRIBUTORS.items() for alias in l}
 
-            try:
-                self.CONTRIBUTORS = CONFIG_GROUP[group_nickname]["CONTRIBUTORS"]
-            except:
-                raise Exception((
-                    "-----------------------------------------------------------------------------------\n"
-                    "You specified to use the -useContributors option and we are not able to locate"
-                    "the dict containing contributors,\n please verify the CONTRIBUTORS format "
-                    "in config.py is correct and/or declared.\n"
-                    "if you would like to use this script without using contributor profiles,\n"
-                    "drop the -useContributors option from the command.\n"
-                    "------------------------------------------------------------------------------------\n "
-                ))
+                except:
+                    raise Exception((
+                        "-----------------------------------------------------------------------------------\n"
+                        "You specified to use the -useContributors option and we are not able to locate"
+                        "the dict containing contributors,\n please verify the CONTRIBUTORS format "
+                        "in config.py is correct and/or declared.\n"
+                        "if you would like to use this script without using contributor profiles,\n"
+                        "drop the -useContributors option from the command.\n"
+                        "------------------------------------------------------------------------------------\n "
+                    ))
 
-            self.ALIAS_TO_NAME = {alias: name for name, l in self.CONTRIBUTORS.items() for alias in l}
 
             self.REPO_LINK = CONFIG_GROUP[group_nickname]["REPO_LINK"]
             self.OK_FILE_TYPES = CONFIG_GROUP[group_nickname]["OK_FILE_TYPES"]
@@ -215,8 +217,10 @@ class Engine:
                             else:
                                 print(f"skipping {commit.insertions+commit.deletions} modified lines for username {commit.author.name} ---------- github ref link -- (set your REPO_LINK variable to the URL of your online repository for ref link reporting)")
 
-
-                    contributor_name = self.ALIAS_TO_NAME.get(commit.author.name, commit.author.name)
+                    if args.useContributors:
+                        contributor_name = self.ALIAS_TO_NAME.get(commit.author.name, commit.author.name)
+                    else:
+                        contributor_name = None
 
                     d = {
                         "date":datetime.date(commit.committer_date),
