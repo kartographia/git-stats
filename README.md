@@ -31,7 +31,7 @@ You will need to create a config.py file that has the following stored in a dict
 * the nickname for this repository group
 * The repository link you would like to track - variable String REPO_LINK
 * The repository location on your file system - variable String LOCAL_PROJECT_DIRECTORY
-* The directories you wish to ignore when adding up the "modified lines" count - list object IGNORE_DIRECTORY
+* The file types you want to include within the filtering - variable List OK_FILE_TYPES
 
 # Optional feature for this project 
 * The list of nicknamed contributors and their relative GitHub Usernames - dictionary (key-value pairs) object CONTRIBUTORS
@@ -42,7 +42,7 @@ These will automatically be imported into the main script from your created `con
 
 ```
 #------------------------------------------------------------------------------------
-configGroup = {
+CONFIG_GROUP = {
     #------------------------ Project 1 ----------------------------------------
     # the list of contributors and their relative github usernames
     # Note: the key is the name that will be used in the report.
@@ -55,11 +55,11 @@ configGroup = {
         # where the current repository is located on your file system
         "LOCAL_PROJECT_DIRECTORY": "/home/<myusername>/<my main github directory>/<cloned repo folder>",
 
-        # The directories you wish to ignore for adding up lines changed
-        "IGNORE_DIRECTORY" :[".git", "temp", ".github", "target", "models", "data","lib"],
-
         # the online url for the repository
-        "REPO_LINK": "https://github.com/<username>/<repo>"
+        "REPO_LINK": "https://github.com/<username>/<repo>",
+
+        # file type extensions to allow
+        "OK_FILE_TYPES": [".py", ".js", ".java", ".sql", ".java", ".css", ".html", ".ipynb" ".sh", ".yml", ".go"]
     },
 
     #------------------------ Project 2 ----------------------------------------
@@ -74,11 +74,11 @@ configGroup = {
         # where the current repository is located on your file system
         "LOCAL_PROJECT_DIRECTORY": "/home/<myusername>/<my main github directory>/<cloned repo folder>",
 
-        # The directories you wish to ignore for adding up lines changed
-        "IGNORE_DIRECTORY" :[".git", "temp", ".github", "target", "models", "data","lib"],
-
         # the online url for the repository
-        "REPO_LINK": "https://github.com/<username>/<repo>"
+        "REPO_LINK": "https://github.com/<username>/<repo>",
+
+        # file type extensions to allow
+        "OK_FILE_TYPES": [".py", ".js", ".java", ".sql", ".java", ".css", ".html", ".ipynb" ".sh", ".yml", ".go"]
     },
     
     #------------------------ Project 3 ----------------------------------------
@@ -90,23 +90,23 @@ configGroup = {
         # where the current repository is located on your file system
         "LOCAL_PROJECT_DIRECTORY": "/home/<myusername>/<my main github directory>/<cloned repo folder>",
 
-        # The directories you wish to ignore for adding up lines changed
-        "IGNORE_DIRECTORY" :[".git", "temp", ".github", "target", "models", "data","lib"],
-
         # the online url for the repository
-        "REPO_LINK": "https://github.com/<username>/<repo>"
+        "REPO_LINK": "https://github.com/<username>/<repo>",
+
+        # file type extensions to allow
+        "OK_FILE_TYPES": [".py", ".js", ".java", ".sql", ".java", ".css", ".html", ".ipynb" ".sh", ".yml", ".go"]
     },
 
-    #------------------------ Project 4 (for use without -useContributors tag) ----------------------------------------
+    #------------------------ Project 4 ----------------------------------------
     "project4Nickname":{
         # where the current repository is located on your file system
         "LOCAL_PROJECT_DIRECTORY": "/home/<myusername>/<my main github directory>/<cloned repo folder>",
 
-        # The directories you wish to ignore for adding up lines changed
-        "IGNORE_DIRECTORY" :[".git", "temp", ".github", "target", "models", "data","lib"],
-
         # the online url for the repository
-        "REPO_LINK": "https://github.com/<username>/<repo>"
+        "REPO_LINK": "https://github.com/<username>/<repo>",
+
+        # file type extensions to allow
+        "OK_FILE_TYPES": [".py", ".js", ".java", ".sql", ".java", ".css", ".html", ".ipynb" ".sh", ".yml", ".go"]
     },
 }
 #------------------------------------------------------------------------------------

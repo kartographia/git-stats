@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------------
-configGroup = {
+CONFIG_GROUP = {
     #------------------------ Project 1 ----------------------------------------
     # the list of contributors and their relative github usernames
     # Note: the key is the name that will be used in the report.
@@ -12,11 +12,11 @@ configGroup = {
         # where the current repository is located on your file system
         "LOCAL_PROJECT_DIRECTORY": "/home/<myusername>/<my main github directory>/<cloned repo folder>",
 
-        # The directories you wish to ignore for adding up lines changed
-        "IGNORE_DIRECTORY" :[".git", "temp", ".github", "target", "models", "data","lib"],
-
         # the online url for the repository
-        "REPO_LINK": "https://github.com/<username>/<repo>"
+        "REPO_LINK": "https://github.com/<username>/<repo>",
+
+        # file type extensions to allow
+        "OK_FILE_TYPES": [".py", ".js", ".java", ".sql", ".java", ".css", ".html", ".ipynb" ".sh", ".yml", ".go"]
     },
 
     #------------------------ Project 2 ----------------------------------------
@@ -31,11 +31,11 @@ configGroup = {
         # where the current repository is located on your file system
         "LOCAL_PROJECT_DIRECTORY": "/home/<myusername>/<my main github directory>/<cloned repo folder>",
 
-        # The directories you wish to ignore for adding up lines changed
-        "IGNORE_DIRECTORY" :[".git", "temp", ".github", "target", "models", "data","lib"],
-
         # the online url for the repository
-        "REPO_LINK": "https://github.com/<username>/<repo>"
+        "REPO_LINK": "https://github.com/<username>/<repo>",
+
+        # file type extensions to allow
+        "OK_FILE_TYPES": [".py", ".js", ".java", ".sql", ".java", ".css", ".html", ".ipynb" ".sh", ".yml", ".go"]
     },
     
     #------------------------ Project 3 ----------------------------------------
@@ -47,11 +47,11 @@ configGroup = {
         # where the current repository is located on your file system
         "LOCAL_PROJECT_DIRECTORY": "/home/<myusername>/<my main github directory>/<cloned repo folder>",
 
-        # The directories you wish to ignore for adding up lines changed
-        "IGNORE_DIRECTORY" :[".git", "temp", ".github", "target", "models", "data","lib"],
-
         # the online url for the repository
-        "REPO_LINK": "https://github.com/<username>/<repo>"
+        "REPO_LINK": "https://github.com/<username>/<repo>",
+
+        # file type extensions to allow
+        "OK_FILE_TYPES": [".py", ".js", ".java", ".sql", ".java", ".css", ".html", ".ipynb" ".sh", ".yml", ".go"]
     },
 
     #------------------------ Project 4 ----------------------------------------
@@ -59,11 +59,11 @@ configGroup = {
         # where the current repository is located on your file system
         "LOCAL_PROJECT_DIRECTORY": "/home/<myusername>/<my main github directory>/<cloned repo folder>",
 
-        # The directories you wish to ignore for adding up lines changed
-        "IGNORE_DIRECTORY" :[".git", "temp", ".github", "target", "models", "data","lib"],
-
         # the online url for the repository
-        "REPO_LINK": "https://github.com/<username>/<repo>"
+        "REPO_LINK": "https://github.com/<username>/<repo>",
+
+        # file type extensions to allow
+        "OK_FILE_TYPES": [".py", ".js", ".java", ".sql", ".java", ".css", ".html", ".ipynb" ".sh", ".yml", ".go"]
     },
 }
 #------------------------------------------------------------------------------------
