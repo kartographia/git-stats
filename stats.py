@@ -1,6 +1,6 @@
 from pydriller import Repository
 from datetime import datetime
-from config import configGroup
+from config import CONFIG_GROUP
 # from config import LOCAL_PROJECT_DIRECTORY
 from datetime import timedelta
 import os
@@ -80,9 +80,9 @@ def line_is_significant(line, file_extension):
     return True
 
 
-class engine:
+class Engine:
 
-    def _AllCommitStats(self):
+    def _all_commit_stats(self):
         '''show multiple useful information field results from the commit object '''
         for commit in Repository(self.LOCAL_PROJECT_DIRECTORY).traverse_commits():
             # print(commit.msg)
@@ -99,7 +99,7 @@ class engine:
             print("-"*70)
             print("-"*70)
 
-    def _AllOptions(self):
+    def _all_options(self):
         ''' show all options of the commit object
         Note: need to declare a local project directory within config.py and import it by uncommenting the import line at the top of this file
          '''
@@ -119,24 +119,24 @@ class engine:
             print("-"*70)
             print("-"*70)
 
-    def getReport(self, maxLines, exportDir, startDate=None, endDate=None):
+    def get_report(self, max_lines, export_dir, start_date=None, end_date=None):
         '''get a detailed report in the following format:
                 date,username,num_lines_changed,file,path,branch,commit
         option:
-        maxLines - at what count of lines modified do we no longer track a commit. If a commit exceeds this amount then we will skip it.
+        max_lines - at what count of lines modified do we no longer track a commit. If a commit exceeds this amount then we will skip it.
         '''
         if args.getAll == True:
-            groupNicknames = []
+            group_nicknames = []
 
-            for groupNickname in configGroup:
-                groupNicknames.append(groupNickname)
+            for group_nickname in CONFIG_GROUP:
+                group_nicknames.append(group_nickname)
         
         else:
-            groupNicknames = [args.nickname]
+            group_nicknames = [args.nickname]
 
         if args.v:
             s = "collecting records from the following repositories: "
-            for name in groupNicknames:
+            for name in group_nicknames:
                 s+= f"{name}, "
             
             s += "...\n"
@@ -144,16 +144,16 @@ class engine:
             time.sleep(2.5)
 
 
-        for groupNickname in groupNicknames:
+        for group_nickname in group_nicknames:
             if args.v:
-                print(f"Collecting records from repository: {groupNickname}")
+                print(f"Collecting records from repository: {group_nickname}")
                 time.sleep(1)
 
             # pull information from config
-            self.LOCAL_PROJECT_DIRECTORY = configGroup[groupNickname]["LOCAL_PROJECT_DIRECTORY"]
+            self.LOCAL_PROJECT_DIRECTORY = CONFIG_GROUP[group_nickname]["LOCAL_PROJECT_DIRECTORY"]
 
             try:
-                self.CONTRIBUTORS = configGroup[groupNickname]["CONTRIBUTORS"]
+                self.CONTRIBUTORS = CONFIG_GROUP[group_nickname]["CONTRIBUTORS"]
             except:
                 raise Exception((
                     "-----------------------------------------------------------------------------------\n"
@@ -167,36 +167,36 @@ class engine:
 
             self.ALIAS_TO_NAME = {alias: name for name, l in self.CONTRIBUTORS.items() for alias in l}
 
-            self.REPO_LINK = configGroup[groupNickname]["REPO_LINK"]
-            self.IGNORE_DIRECTORY = configGroup[groupNickname]["IGNORE_DIRECTORY"]
-            self.OK_FILE_TYPES = configGroup[groupNickname]["OK_FILE_TYPES"]
+            self.REPO_LINK = CONFIG_GROUP[group_nickname]["REPO_LINK"]
+            self.IGNORE_DIRECTORY = CONFIG_GROUP[group_nickname]["IGNORE_DIRECTORY"]
+            self.OK_FILE_TYPES = CONFIG_GROUP[group_nickname]["OK_FILE_TYPES"]
             
             records = []
             
-            commitsObject = Repository(self.LOCAL_PROJECT_DIRECTORY).traverse_commits()
-            for commit in commitsObject:
+            commits_object = Repository(self.LOCAL_PROJECT_DIRECTORY).traverse_commits()
+            for commit in commits_object:
                 organization = self.REPO_LINK.split('github.com/')[1].split(commit.project_name)[0].strip('/')
                 
-                if startDate != None and endDate != None:
-                    dateEnd = datetime.strptime(endDate,'%m/%d/%Y').date()
-                    dateStart = datetime.strptime(startDate,'%m/%d/%Y').date()
-                    dateDifferenceDays = (dateEnd - dateStart).days
+                if start_date != None and end_date != None:
+                    date_end = datetime.strptime(end_date,'%m/%d/%Y').date()
+                    date_start = datetime.strptime(start_date,'%m/%d/%Y').date()
+                    date_difference_days = (date_end - date_start).days
 
                 else:
                     # hard-coded 150 years - gets all commits of any repo
                     days = 55000
-                    dateDifferenceDays = days
-                    dateEnd = datetime.now().date()
-                    dateStart = dateEnd - timedelta(days)
+                    date_difference_days = days
+                    date_end = datetime.now().date()
+                    date_start = date_end - timedelta(days)
 
                 committer_date = datetime.fromisoformat(str(commit.committer_date)).date()
-                how_long_ago = (dateEnd - committer_date).days
+                how_long_ago = (date_end - committer_date).days
                 # Skip commits that were too long ago
-                if how_long_ago > dateDifferenceDays:
+                if how_long_ago > date_difference_days:
                     continue
 
                 # # Skip commits with too many lines (default 1000)
-                # if (commit.insertions+commit.deletions) > maxLines:
+                # if (commit.insertions+commit.deletions) > max_lines:
                 #     if args.v:
                 #         print("-"*70)
                 #         if self.REPO_LINK != "":
@@ -214,9 +214,17 @@ class engine:
                         sys.stdout.flush()
                         continue
 
-                    # Make sure not too many lines
-                    if len(file.diff_parsed['added']) + len(file.diff_parsed['deleted']) > 10000:
+                    # Make sure not too many lines (using total lines changed for the entire commit)
+                    if commit.insertions + commit.deletions > max_lines:
                         continue
+                    else:
+                        if args.v:
+                            print("-"*70)
+                            if self.REPO_LINK != "":
+                                print(f"skipping {commit.insertions+commit.deletions} modified lines for username {commit.author.name} ---------- github ref link -- {self.REPO_LINK}/commit/{commit.hash}")
+                            else:
+                                print(f"skipping {commit.insertions+commit.deletions} modified lines for username {commit.author.name} ---------- github ref link -- (set your REPO_LINK variable to the URL of your online repository for ref link reporting)")
+
 
                     contributor_name = self.ALIAS_TO_NAME.get(commit.author.name, commit.author.name)
 
@@ -228,7 +236,7 @@ class engine:
                         "file":file.filename,
                         "path": None,
                         "branch":'|'.join(commit.branches),
-                        "commitNum":commit.hash,
+                        "commit_number":commit.hash,
                         "repository":commit.project_name,
                         "organization":organization,
                         "filetype":file_extension,
@@ -251,11 +259,11 @@ class engine:
             keys = records[0].keys()
 
             datestr = str(datetime.now().replace(microsecond=0)).replace(" ", "-").replace(':', '.')
-            exportDir = exportDir.replace('.csv', '') + '-' + datestr + '.csv'
+            export_dir = export_dir.replace('.csv', '') + '-' + datestr + '.csv'
 
-            with open(exportDir, 'w') as f:
+            with open(export_dir, 'w') as f:
                 if args.v:
-                    print(f"\n\nexporting {len(records)} records to csv file {exportDir} ...")
+                    print(f"\n\nexporting {len(records)} records to csv file {export_dir} ...")
                 dict_writer = csv.DictWriter(f,keys)
                 dict_writer.writeheader()
                 dict_writer.writerows(records)
@@ -298,29 +306,29 @@ if __name__ == "__main__":
             if  ".csv" not in args.exportCSV:
                 raise ValueError('option -exportCSV must be used with a filename ending with extension .csv')
 
-            if args.nickname != None and args.nickname not in list(configGroup.keys()):
-                raise ValueError(f"\n\nplease choose a valid config nickname option  (these are set by you in config.py)\n options currently available are: {list(configGroup.keys())}")    
+            if args.nickname != None and args.nickname not in list(CONFIG_GROUP.keys()):
+                raise ValueError(f"\n\nplease choose a valid config nickname option  (these are set by you in config.py)\n options currently available are: {list(CONFIG_GROUP.keys())}")    
 
             elif args.getAll == True:
                 pass
             
-            a = engine()
+            a = Engine()
             if args.start and args.end:
                 if args.maxLines != None:
                     if args.v:
                         print(f"specified maximum lines from any single commit is {args.maxLines}")
-                    a.getReport(exportDir=args.exportCSV, maxLines=args.maxLines, startDate=args.start, endDate=args.end)
+                    a.get_report(export_dir=args.exportCSV, max_lines=args.maxLines, start_date=args.start, end_date=args.end)
                 else:
-                    a.getReport(exportDir=args.exportCSV, maxLines=1000, startDate=args.start, endDate=args.end)
+                    a.get_report(export_dir=args.exportCSV, max_lines=1000, start_date=args.start, end_date=args.end)
             else:
                 if args.maxLines != None:
                     if args.v:
                         print(f"specified maximum lines from any single commit is {args.maxLines}")
-                    a.getReport(exportDir=args.exportCSV, maxLines=args.maxLines)
+                    a.get_report(export_dir=args.exportCSV, max_lines=args.maxLines)
                 else:
-                    a.getReport(exportDir=args.exportCSV, maxLines=1000)
+                    a.get_report(export_dir=args.exportCSV, max_lines=1000)
     
     else:
         print("printing options..")
-        a = engine()
-        a._AllOptions()
+        a = Engine()
+        a._all_options()
