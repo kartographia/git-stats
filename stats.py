@@ -196,25 +196,27 @@ class Engine:
                 if how_long_ago > date_difference_days:
                     continue
 
+                # Make sure not too many lines (using total lines changed for the entire commit)
+                if commit.insertions + commit.deletions > max_lines:
+                    
+                    if args.v:
+                        print("-"*70)
+                        if self.REPO_LINK != "":
+                            print(f"skipping {commit.insertions+commit.deletions} modified lines for username {commit.author.name} ---------- github ref link -- {self.REPO_LINK}/commit/{commit.hash}")
+                        else:
+                            print(f"skipping {commit.insertions+commit.deletions} modified lines for username {commit.author.name} ---------- github ref link -- (set your REPO_LINK variable to the URL of your online repository for ref link reporting)")
+                    continue
+
                 for file in commit.modified_files:
                     
                     # Make sure file extension is ok
                     file_extension = '.'+file.filename.split('.')[-1]
                     if file_extension not in self.OK_FILE_TYPES:
-                        sys.stdout.write(f"\rSkipping {file.filename} due to file extension"+" "*40)
-                        sys.stdout.flush()
+                        if args.v:
+                            sys.stdout.write(f"\rSkipping {file.filename} due to file extension"+" "*40)
+                            sys.stdout.flush()
                         continue
 
-                    # Make sure not too many lines (using total lines changed for the entire commit)
-                    if commit.insertions + commit.deletions > max_lines:
-                        continue
-                    else:
-                        if args.v:
-                            print("-"*70)
-                            if self.REPO_LINK != "":
-                                print(f"skipping {commit.insertions+commit.deletions} modified lines for username {commit.author.name} ---------- github ref link -- {self.REPO_LINK}/commit/{commit.hash}")
-                            else:
-                                print(f"skipping {commit.insertions+commit.deletions} modified lines for username {commit.author.name} ---------- github ref link -- (set your REPO_LINK variable to the URL of your online repository for ref link reporting)")
 
                     if args.useContributors:
                         contributor_name = self.ALIAS_TO_NAME.get(commit.author.name, commit.author.name)
