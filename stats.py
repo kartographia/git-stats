@@ -168,7 +168,6 @@ class Engine:
             self.ALIAS_TO_NAME = {alias: name for name, l in self.CONTRIBUTORS.items() for alias in l}
 
             self.REPO_LINK = CONFIG_GROUP[group_nickname]["REPO_LINK"]
-            self.IGNORE_DIRECTORY = CONFIG_GROUP[group_nickname]["IGNORE_DIRECTORY"]
             self.OK_FILE_TYPES = CONFIG_GROUP[group_nickname]["OK_FILE_TYPES"]
             
             records = []
@@ -191,19 +190,10 @@ class Engine:
 
                 committer_date = datetime.fromisoformat(str(commit.committer_date)).date()
                 how_long_ago = (date_end - committer_date).days
+
                 # Skip commits that were too long ago
                 if how_long_ago > date_difference_days:
                     continue
-
-                # # Skip commits with too many lines (default 1000)
-                # if (commit.insertions+commit.deletions) > max_lines:
-                #     if args.v:
-                #         print("-"*70)
-                #         if self.REPO_LINK != "":
-                #             print(f"skipping {commit.insertions+commit.deletions} modified lines for username {commit.author.name} ---------- github ref link -- {self.REPO_LINK}/commit/{commit.hash}")
-                #         else:
-                #             print(f"skipping {commit.insertions+commit.deletions} modified lines for username {commit.author.name} ---------- github ref link -- (set your REPO_LINK variable to the URL of your online repository for ref link reporting)")
-                #     continue
 
                 for file in commit.modified_files:
                     
@@ -270,17 +260,6 @@ class Engine:
                 if args.v:
                     print("done!")
         
-
-    # def getAcceptableFiles(self):
-    #     ''' returns a list of filenames to log modified line counts from - ignoring directories and filenames declared in config.py'''
-    #     acceptableFiles = []
-    #     for root, dirs, files in os.walk(self.LOCAL_PROJECT_DIRECTORY):
-    #         [dirs.remove(d) for d in list(dirs) if d in self.IGNORE_DIRECTORY]
-    #         for file in files:
-    #             file_extension = '.'+file.split('.')[-1]
-    #             if file_extension in self.OK_FILE_TYPES:
-    #                 acceptableFiles.append(file)
-    #     return acceptableFiles
     
 
 if __name__ == "__main__":
